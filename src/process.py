@@ -2,15 +2,16 @@ import os
 from typing import Dict, List, cast, Tuple
 
 import nltk
+import editdistance
 
-from utils import Specials, pkl_dump, pkl_load
+from utils import Specials, get_bert_tokenizer, pkl_dump, pkl_load
 
 
 def get_tokens(line: str) -> List[str]:
     return [word.lower() for word in nltk.word_tokenize(line)]
 
 
-def create_vocab(
+def store_vocab(
     store_validation: bool = True,
     min_freq: int = 2,
     data_path: str = "./data/para",
@@ -51,7 +52,7 @@ def create_vocab(
     pkl_dump(index_to_word, os.path.join(data_out_path, "index_to_word.pkl"))
 
 
-def token_to_index(
+def store_indices(
     data_path: str = "./data/para",
     sub_file: str = "train",
     cleaned_dir_name: str = "processed",
@@ -90,3 +91,30 @@ def token_to_index(
     pkl_dump(src_tags, os.path.join(data_out_path, f"{sub_file}_src_tags.pkl"))
     pkl_dump(trg_tokens, os.path.join(data_out_path, f"{sub_file}_trg.pkl"))
     pkl_dump(trg_tags, os.path.join(data_out_path, f"{sub_file}_trg_tags.pkl"))
+
+
+def store_bert_ids(
+    data_path: str = "./data/para",
+    cleaned_dir_name: str = "processed",
+    sub_file: str = "train",
+) -> None:
+    data_out_path = os.path.join(data_path, cleaned_dir_name)
+    i2w_data = pkl_load(os.path.join(data_out_path, "index_to_word.pkl"))
+    src_token_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_src.pkl"))
+    trg_token_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg.pkl"))
+
+    index_to_word = cast(Dict[int, str], i2w_data)
+    src_tokens = cast(List[List[int]], src_token_data)
+    trg_tokens = cast(List[List[int]], trg_token_data)
+
+    tokenizer = get_bert_tokenizer()
+
+    def get_bert_ids(tokens: List[List[int]]) -> List[List[int]]:
+        text = [" ".join([index_to_word[idx] for idx in line]) for line in tokens]
+        return [tokenizer.encode(line, add_special_tokens=True) for line in text]
+
+    src_bert_ids = get_bert_ids(src_tokens)
+    trg_bert_ids = get_bert_ids(trg_tokens)
+
+    pkl_dump(src_bert_ids, os.path.join(data_out_path, f"{sub_file}_src_bert_ids.pkl"))
+    pkl_dump(trg_bert_ids, os.path.join(data_out_path, f"{sub_file}_trg_bert_ids.pkl"))

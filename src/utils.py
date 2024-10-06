@@ -1,6 +1,12 @@
 from dataclasses import dataclass
 import pickle as pkl
 
+from transformers import BertTokenizer
+
+
+def get_bert_tokenizer() -> BertTokenizer:
+    return BertTokenizer.from_pretrained("bert-base-uncased")
+
 
 @dataclass
 class Specials:
