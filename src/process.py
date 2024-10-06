@@ -18,7 +18,7 @@ def get_tokens(line: str) -> List[str]:
 def store_vocab(
     store_validation: bool = True,
     min_freq: int = 2,
-    data_path: str = "./data/quora",
+    data_path: str = "./data/para",
     cleaned_dir_name: str = "processed",
 ) -> None:
     word_to_count: Dict[str, int] = {}
@@ -57,7 +57,7 @@ def store_vocab(
 
 
 def store_indices(
-    data_path: str = "./data/quora",
+    data_path: str = "./data/para",
     sub_file: str = "train",
     cleaned_dir_name: str = "processed",
 ) -> None:
@@ -98,7 +98,7 @@ def store_indices(
 
 
 def store_bert_ids(
-    data_path: str = "./data/quora",
+    data_path: str = "./data/para",
     cleaned_dir_name: str = "processed",
     sub_file: str = "train",
 ) -> None:
@@ -125,7 +125,7 @@ def store_bert_ids(
 
 
 def store_similar_sents(
-    data_path: str = "./data/quora",
+    data_path: str = "./data/para",
     cleaned_dir_name: str = "processed",
     sub_file: str = "test",
 ) -> None:
