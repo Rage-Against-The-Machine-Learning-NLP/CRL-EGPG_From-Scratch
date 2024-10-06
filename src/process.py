@@ -6,7 +6,9 @@ import numpy as np
 import nltk
 import editdistance
 
-from utils import Specials, get_bert_tokenizer, pkl_dump, pkl_load
+from .utils import Specials, get_bert_tokenizer, pkl_dump, pkl_load
+
+nltk.download("averaged_perceptron_tagger_eng")
 
 
 def get_tokens(line: str) -> List[str]:
@@ -16,7 +18,7 @@ def get_tokens(line: str) -> List[str]:
 def store_vocab(
     store_validation: bool = True,
     min_freq: int = 2,
-    data_path: str = "./data/para",
+    data_path: str = "./data/quora",
     cleaned_dir_name: str = "processed",
 ) -> None:
     word_to_count: Dict[str, int] = {}
@@ -27,12 +29,12 @@ def store_vocab(
                 words = get_tokens(line)
                 tags = list(zip(*nltk.pos_tag(words)))[1]
 
-                for word in words + tags:
+                for word in words + list(tags):
                     word_to_count[word] = word_to_count.get(word, 0) + 1
 
     files = ["train_src.txt", "train_trg.txt"]
     if store_validation:
-        files += ["val_src.txt", "val_trg.txt"]
+        files += ["valid_src.txt", "valid_trg.txt"]
 
     for file in files:
         process_file(os.path.join(data_path, file))
@@ -55,7 +57,7 @@ def store_vocab(
 
 
 def store_indices(
-    data_path: str = "./data/para",
+    data_path: str = "./data/quora",
     sub_file: str = "train",
     cleaned_dir_name: str = "processed",
 ) -> None:
@@ -96,7 +98,7 @@ def store_indices(
 
 
 def store_bert_ids(
-    data_path: str = "./data/para",
+    data_path: str = "./data/quora",
     cleaned_dir_name: str = "processed",
     sub_file: str = "train",
 ) -> None:
@@ -123,9 +125,9 @@ def store_bert_ids(
 
 
 def store_similar_sents(
-    data_path: str = "./data/para",
+    data_path: str = "./data/quora",
     cleaned_dir_name: str = "processed",
-    sub_file: str = "train",
+    sub_file: str = "test",
 ) -> None:
     data_out_path = os.path.join(data_path, cleaned_dir_name)
     tag_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg_tags.pkl"))
@@ -160,3 +162,22 @@ def store_similar_sents(
         similar_list.append(random.sample(most_similar, min(5, len(most_similar))))
 
     pkl_dump(similar_list, os.path.join(data_out_path, f"{sub_file}_similarity.pkl"))
+
+
+def main() -> None:
+    store_vocab()
+    print("stored vocab")
+    store_indices(sub_file="train")
+    store_indices(sub_file="valid")
+    store_indices(sub_file="test")
+    print("stored indices")
+    store_bert_ids(sub_file="train")
+    store_bert_ids(sub_file="valid")
+    store_bert_ids(sub_file="test")
+    print("stored bert ids")
+    store_similar_sents()
+    print("stored similar sents")
+
+
+if __name__ == "__main__":
+    main()
