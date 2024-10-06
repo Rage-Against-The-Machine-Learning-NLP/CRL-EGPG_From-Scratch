@@ -5,6 +5,7 @@ import random
 import numpy as np
 import nltk
 import editdistance
+import argparse
 
 from .utils import Specials, get_bert_tokenizer, pkl_dump, pkl_load
 
@@ -165,18 +166,29 @@ def store_similar_sents(
 
 
 def main() -> None:
-    store_vocab()
-    print("stored vocab")
-    store_indices(sub_file="train")
-    store_indices(sub_file="valid")
-    store_indices(sub_file="test")
-    print("stored indices")
-    store_bert_ids(sub_file="train")
-    store_bert_ids(sub_file="valid")
-    store_bert_ids(sub_file="test")
-    print("stored bert ids")
-    store_similar_sents()
-    print("stored similar sents")
+    parser = argparse.ArgumentParser(description="Process dataset information")
+    parser.add_argument(
+        "--dataset", type=str, required=True, help="dataset name (para / quora)"
+    )
+
+    args = parser.parse_args()
+    dataset = args.dataset
+
+    dataset_path = os.path.join("./data", dataset)
+
+    print("dataset: ", dataset)
+    store_vocab(data_path=dataset_path)
+    print("\t-> stored vocab\n")
+    for sub_file in ["train", "test", "valid"]:
+        store_indices(sub_file=sub_file, data_path=dataset_path)
+        print(f"\t\t-> stored indices for {sub_file}")
+        store_bert_ids(sub_file=sub_file, data_path=dataset_path)
+        print(f"\t\t-> stored bert ids for {sub_file}")
+    
+    store_similar_sents(data_path=dataset_path)
+    print(f"\n\t-> stored similar sentences\n")
+
+    print(f"\tprocessing complete\n\n")
 
 
 if __name__ == "__main__":
