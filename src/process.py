@@ -1,6 +1,8 @@
 import os
 from typing import Dict, List, cast, Tuple
+import random
 
+import numpy as np
 import nltk
 import editdistance
 
@@ -118,3 +120,43 @@ def store_bert_ids(
 
     pkl_dump(src_bert_ids, os.path.join(data_out_path, f"{sub_file}_src_bert_ids.pkl"))
     pkl_dump(trg_bert_ids, os.path.join(data_out_path, f"{sub_file}_trg_bert_ids.pkl"))
+
+
+def store_similar_sents(
+    data_path: str = "./data/para",
+    cleaned_dir_name: str = "processed",
+    sub_file: str = "train",
+) -> None:
+    data_out_path = os.path.join(data_path, cleaned_dir_name)
+    tag_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg_tags.pkl"))
+    tok_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg.pkl"))
+
+    tags = cast(List[List[int]], tag_data)
+    tokens = cast(List[List[int]], tok_data)
+
+    similar_list = []
+    for i in range(len(tokens)):
+        similarity = [np.inf for _ in range(len(tokens))]
+
+        for j in range(len(tokens)):
+            if i == j:
+                continue
+
+            if abs(len(tokens[i]) - len(tokens[j])) > 2:
+                continue
+            if (
+                len(list(set(tokens[i]))) - len(list(set(tokens[i]) & set(tokens[j])))
+                < 2
+            ):
+                continue
+
+            similarity[j] = editdistance.eval(tags[i], tags[j])
+
+        best_score = min(similarity)
+        most_similar = [
+            idx for idx, score in enumerate(similarity) if score == best_score
+        ]
+
+        similar_list.append(random.sample(most_similar, min(5, len(most_similar))))
+
+    pkl_dump(similar_list, os.path.join(data_out_path, f"{sub_file}_similarity.pkl"))
