@@ -1,0 +1,9 @@
+name: crl-egpg
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - editdistance
+  - nltk
+  - transformers
+prefix: /home/varun/miniconda3/envs/crl-egpg
