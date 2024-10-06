@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import pickle as pkl
 
 
 @dataclass
@@ -7,3 +8,13 @@ class Specials:
     UNK: str = "<UNK>"
     SOS: str = "<SOS>"
     EOS: str = "<EOS>"
+
+
+def pkl_dump(data, file_path: str) -> None:
+    with open(file_path, "wb") as file:
+        pkl.dump(data, file)
+
+
+def pkl_load(file_path: str) -> None:
+    with open(file_path, "rb") as file:
+        return pkl.load(file)
