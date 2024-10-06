@@ -6,4 +6,4 @@ dependencies:
   - editdistance
   - nltk
   - transformers
-prefix: /home/varun/miniconda3/envs/crl-egpg
+
