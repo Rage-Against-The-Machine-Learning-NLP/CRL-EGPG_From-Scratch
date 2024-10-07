@@ -2,7 +2,6 @@ import os
 from typing import Dict, List, cast, Tuple
 import random
 import multiprocessing
-from functools import partial
 
 import numpy as np
 import nltk
@@ -218,12 +217,12 @@ def process_sub_file(sub_file, dataset_path):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Process dataset information")
+    parser = argparse.ArgumentParser(description="process dataset info")
     parser.add_argument(
         "--dataset", type=str, required=True, help="dataset name (para / quora)"
     )
     parser.add_argument(
-        "--parallel", action="store_true", help="use parallel processing"
+        "--sequential", action="store_true", help="use sequential processing"
     )
     args = parser.parse_args()
     dataset = args.dataset
@@ -238,7 +237,7 @@ def main() -> None:
 
     sub_files = ["test", "valid", "train"]
 
-    if args.parallel:
+    if not args.sequential:
         processes = []
         for sub_file in sub_files:
             p = multiprocessing.Process(
