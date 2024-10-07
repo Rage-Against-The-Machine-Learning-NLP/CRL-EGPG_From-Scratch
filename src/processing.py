@@ -255,5 +255,47 @@ def main() -> None:
     print(f"processing complete\n\n")
 
 
+def show_sim():
+    data_path = "./data/quora"
+    cleaned_dir_name = "processed"
+    sub_file = "test"
+
+    data_out_path = os.path.join(data_path, cleaned_dir_name)
+
+    similar_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_similarity.pkl"))
+    tok_data_trg = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg.pkl"))
+    tok_data_src = pkl_load(os.path.join(data_out_path, f"{sub_file}_src.pkl"))
+    tag_data_trg = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg_tags.pkl"))
+    index_to_word = pkl_load(os.path.join(data_out_path, "index_to_word.pkl"))
+
+    similar_list = cast(List[List[int]], similar_data)
+    tokens_trg = cast(List[List[int]], tok_data_trg)
+    tokens_src = cast(List[List[int]], tok_data_src)
+    tags_trg = cast(List[List[int]], tag_data_trg)
+    index_to_word = cast(Dict[int, str], index_to_word)
+
+    # show for a random line
+    idx = random.randint(0, len(tokens_trg))
+
+    print("SOURCE SENTENCE: ")
+    sentence = " ".join([index_to_word[idx] for idx in tokens_src[idx]])
+    print(f"\tSentence: {sentence}")
+    print("\n")
+
+    print("SIMILAR SENTENCES (TO TARGET STYLE BY PoS): ")
+    for sim_idx in similar_list[idx]:
+        sim_sentence = " ".join([index_to_word[idx] for idx in tokens_trg[sim_idx]])
+        sim_tag_list = [index_to_word[idx] for idx in tags_trg[sim_idx]]
+        print(f"\tSentence: {sim_sentence}")
+        print(f"\tTags: {sim_tag_list}")
+        print("\n")
+
+    sentence = " ".join([index_to_word[idx] for idx in tokens_trg[idx]])
+    tag_list = [index_to_word[idx] for idx in tags_trg[idx]]
+    print("TARGET SENTENCE: ")
+    print(f"\tSentence: {sentence}")
+    print(f"\tTags: {tag_list}")
+
+
 if __name__ == "__main__":
-    main()
+    show_sim()
