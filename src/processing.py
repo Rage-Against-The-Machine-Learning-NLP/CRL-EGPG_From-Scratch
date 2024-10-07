@@ -2,6 +2,7 @@ import os
 from typing import Dict, List, cast, Tuple
 import random
 import multiprocessing
+from functools import partial
 
 import numpy as np
 import nltk
@@ -138,9 +139,14 @@ def store_similar_sents(
     tags = cast(List[List[int]], tag_data)
     tokens = cast(List[List[int]], tok_data)
 
+    NUM_LINES = len(tokens)
+
     similar_list = []
     for i in range(len(tokens)):
         similarity = [np.inf for _ in range(len(tokens))]
+
+        if i % int(1e5) == 0 and i > 0:
+            print(f"\t\t\t[store_similar_sents({sub_file})] line {i} of {NUM_LINES}")
 
         for j in range(len(tokens)):
             if i == j:
@@ -166,15 +172,49 @@ def store_similar_sents(
     pkl_dump(similar_list, os.path.join(data_out_path, f"{sub_file}_similarity.pkl"))
 
 
-def process_sub_file(sub_file, data_path):
-    print(f"\tStarting processing {sub_file}")
+def store_indices_wrapper(sub_file, data_path, event):
     store_indices(sub_file=sub_file, data_path=data_path)
     print(f"\t\t-> stored indices for {sub_file}")
+    event.set()  # signal that indices are stored
+
+
+def store_bert_ids_wrapper(sub_file, data_path, event):
+    event.wait()  # wait for indices to be stored
     store_bert_ids(sub_file=sub_file, data_path=data_path)
     print(f"\t\t-> stored bert ids for {sub_file}")
-    store_similar_sents(data_path=data_path, sub_file=sub_file)
+
+
+def store_similar_sents_wrapper(sub_file, data_path, event):
+    event.wait()  # wait for indices to be stored
+    store_similar_sents(sub_file=sub_file, data_path=data_path)
     print(f"\t\t-> stored similar sentences for {sub_file}")
-    print(f"\tFinished processing {sub_file}")
+
+
+def process_sub_file(sub_file, dataset_path):
+    print(f"\tprocessing {sub_file}")
+
+    event = multiprocessing.Event()
+
+    indices_process = multiprocessing.Process(
+        target=store_indices_wrapper, args=(sub_file, dataset_path, event)
+    )
+
+    bert_process = multiprocessing.Process(
+        target=store_bert_ids_wrapper, args=(sub_file, dataset_path, event)
+    )
+    similar_process = multiprocessing.Process(
+        target=store_similar_sents_wrapper, args=(sub_file, dataset_path, event)
+    )
+
+    indices_process.start()
+    bert_process.start()
+    similar_process.start()
+
+    indices_process.join()
+    bert_process.join()
+    similar_process.join()
+
+    print(f"\tfinished processing {sub_file}")
 
 
 def main() -> None:
@@ -192,19 +232,26 @@ def main() -> None:
 
     dataset_path = os.path.join("./data", dataset)
     print("dataset: ", dataset)
+
     store_vocab(data_path=dataset_path)
     print("\t-> stored vocab\n")
 
-    max_processes = 3 if args.parallel else 1
-    num_processes = min(multiprocessing.cpu_count(), max_processes)
-    with multiprocessing.Pool(processes=num_processes) as pool:
-        results = [
-            pool.apply_async(process_sub_file, args=(sub_file, dataset_path))
-            for sub_file in ["test", "valid", "train"]
-        ]
+    sub_files = ["test", "valid", "train"]
 
-        for result in results:
-            result.get()
+    if args.parallel:
+        processes = []
+        for sub_file in sub_files:
+            p = multiprocessing.Process(
+                target=process_sub_file, args=(sub_file, dataset_path)
+            )
+            processes.append(p)
+            p.start()
+
+        for p in processes:
+            p.join()
+    else:
+        for sub_file in sub_files:
+            process_sub_file(sub_file, dataset_path)
 
     print(f"processing complete\n\n")
 
