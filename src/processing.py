@@ -14,6 +14,9 @@ nltk.download("averaged_perceptron_tagger_eng")
 
 
 def get_tokens(line: str) -> List[str]:
+    """
+    tokenize a line of text
+    """
     return [word.lower() for word in nltk.word_tokenize(line)]
 
 
@@ -23,6 +26,10 @@ def store_vocab(
     data_path: str = "./data/para",
     cleaned_dir_name: str = "processed",
 ) -> None:
+    """
+    store the vocabulary for the given dataset, in the form of
+    word_to_index and index_to_word mappings
+    """
     word_to_count: Dict[str, int] = {}
 
     def process_file(file_path: str) -> None:
@@ -63,6 +70,10 @@ def store_indices(
     sub_file: str = "train",
     cleaned_dir_name: str = "processed",
 ) -> None:
+    """
+    store the indices for each line of the sub_file in the data_path
+    corresponding to the vocabulary
+    """
     data_out_path = os.path.join(data_path, cleaned_dir_name)
 
     w2i_data = pkl_load(os.path.join(data_out_path, "word_to_index.pkl"))
@@ -104,6 +115,10 @@ def store_bert_ids(
     cleaned_dir_name: str = "processed",
     sub_file: str = "train",
 ) -> None:
+    """
+    store the bert ids for each line of the sub_file in the data_path
+    corresponding to the vocabulary
+    """
     data_out_path = os.path.join(data_path, cleaned_dir_name)
     i2w_data = pkl_load(os.path.join(data_out_path, "index_to_word.pkl"))
     src_token_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_src.pkl"))
@@ -131,6 +146,11 @@ def store_similar_sents(
     cleaned_dir_name: str = "processed",
     sub_file: str = "test",
 ) -> None:
+    """
+    store the indices of similar sentences for each line of the sub_file in the data_path
+    We only do this for the target sentences, as we have to guide their style
+    similarity is measured by the edit distance of the PoS tags
+    """
     data_out_path = os.path.join(data_path, cleaned_dir_name)
     tag_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg_tags.pkl"))
     tok_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg.pkl"))
@@ -172,24 +192,36 @@ def store_similar_sents(
 
 
 def store_indices_wrapper(sub_file, data_path, event):
+    """
+    wrapper to store indices for a sub_file
+    """
     store_indices(sub_file=sub_file, data_path=data_path)
     print(f"\t\t-> stored indices for {sub_file}")
     event.set()  # signal that indices are stored
 
 
 def store_bert_ids_wrapper(sub_file, data_path, event):
+    """
+    wrapper to store bert ids for a sub_file
+    """
     event.wait()  # wait for indices to be stored
     store_bert_ids(sub_file=sub_file, data_path=data_path)
     print(f"\t\t-> stored bert ids for {sub_file}")
 
 
 def store_similar_sents_wrapper(sub_file, data_path, event):
+    """
+    wrapper to store similar sentences for a sub_file
+    """
     event.wait()  # wait for indices to be stored
     store_similar_sents(sub_file=sub_file, data_path=data_path)
     print(f"\t\t-> stored similar sentences for {sub_file}")
 
 
 def process_sub_file(sub_file, dataset_path):
+    """
+    store indices, bert ids and similar sentences for a sub_file
+    """
     print(f"\tprocessing {sub_file}")
 
     event = multiprocessing.Event()
@@ -256,6 +288,9 @@ def main() -> None:
 
 
 def show_sim():
+    """
+    show source, target-similar sentences and target sentence for a random line
+    """
     data_path = "./data/quora"
     cleaned_dir_name = "processed"
     sub_file = "test"
