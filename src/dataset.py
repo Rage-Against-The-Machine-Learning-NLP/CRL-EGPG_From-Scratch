@@ -69,7 +69,7 @@ class OurDataset(Dataset):
             if prepend is not None:
                 trunc[0] = prepend
             if append is not None:
-                trunc[-1] = append
+                trunc[start + len(data)] = append
             
             return trunc
 
