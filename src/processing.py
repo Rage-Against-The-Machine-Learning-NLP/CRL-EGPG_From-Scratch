@@ -1,6 +1,7 @@
 import os
 from typing import Dict, List, cast, Tuple
 import random
+import multiprocessing
 
 import numpy as np
 import nltk
@@ -165,30 +166,47 @@ def store_similar_sents(
     pkl_dump(similar_list, os.path.join(data_out_path, f"{sub_file}_similarity.pkl"))
 
 
+def process_sub_file(sub_file, data_path):
+    print(f"\tStarting processing {sub_file}")
+    store_indices(sub_file=sub_file, data_path=data_path)
+    print(f"\t\t-> stored indices for {sub_file}")
+    store_bert_ids(sub_file=sub_file, data_path=data_path)
+    print(f"\t\t-> stored bert ids for {sub_file}")
+    store_similar_sents(data_path=data_path, sub_file=sub_file)
+    print(f"\t\t-> stored similar sentences for {sub_file}")
+    print(f"\tFinished processing {sub_file}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Process dataset information")
     parser.add_argument(
         "--dataset", type=str, required=True, help="dataset name (para / quora)"
     )
-
+    parser.add_argument(
+        "--parallel", action="store_true", help="use parallel processing"
+    )
     args = parser.parse_args()
     dataset = args.dataset
+    if dataset not in ["para", "quora"]:
+        raise ValueError("invalid dataset name, must be 'para' or 'quora'")
 
     dataset_path = os.path.join("./data", dataset)
-
     print("dataset: ", dataset)
     store_vocab(data_path=dataset_path)
     print("\t-> stored vocab\n")
-    for sub_file in ["train", "test", "valid"]:
-        store_indices(sub_file=sub_file, data_path=dataset_path)
-        print(f"\t\t-> stored indices for {sub_file}")
-        store_bert_ids(sub_file=sub_file, data_path=dataset_path)
-        print(f"\t\t-> stored bert ids for {sub_file}")
-    
-    store_similar_sents(data_path=dataset_path)
-    print(f"\n\t-> stored similar sentences\n")
 
-    print(f"\tprocessing complete\n\n")
+    max_processes = 3 if args.parallel else 1
+    num_processes = min(multiprocessing.cpu_count(), max_processes)
+    with multiprocessing.Pool(processes=num_processes) as pool:
+        results = [
+            pool.apply_async(process_sub_file, args=(sub_file, dataset_path))
+            for sub_file in ["test", "valid", "train"]
+        ]
+
+        for result in results:
+            result.get()
+
+    print(f"processing complete\n\n")
 
 
 if __name__ == "__main__":

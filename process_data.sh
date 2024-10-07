@@ -1,2 +1,2 @@
-python -m src.processing --dataset quora
-python -m src.processing --dataset para 
+python -m src.processing --dataset quora --parallel
+python -m src.processing --dataset para --parallel
