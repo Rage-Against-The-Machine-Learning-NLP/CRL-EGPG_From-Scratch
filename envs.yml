@@ -1,9 +1,14 @@
 name: crl-egpg
 channels:
   - conda-forge
+  - pytorch
+  - nvidia
   - defaults
 dependencies:
   - editdistance
   - nltk
   - transformers
+  - pytorch
+  - pytorch-cuda
+  - cudatoolkit
 
