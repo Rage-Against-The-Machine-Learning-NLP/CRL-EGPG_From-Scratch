@@ -1,7 +1,7 @@
 import os, sys
 import random
 from typing import List
-from utils import pkl_load
+from utils import pkl_load, Specials
 
 from torch.utils.data import Dataset, DataLoader
 import torch
@@ -9,39 +9,33 @@ import torch
 
 class OurDataset(Dataset):
     def __init__(self, dataroot: str, max_len: int, type: str):
-        def resolve_paths() -> List[str]:
+        def resolve_path(file: str, is_vocab_file: bool = False) -> List[str]:
             """
-            returns absolute paths of all files associated with the dataset (train/test/valid)
+            returns absolute path of a file associated with the dataset (train/test/valid)
             resolved against the root path provided
             """
-
-            files = (
-                "src",
-                "src_bert_ids",
-                "src_tags",
-                "trg",
-                "trg_bert_ids",
-                "trg_tags",
-                "similarity"
-            )
-
             dirname = os.path.dirname(__file__)
-            abspaths = []
-            for file in files:
-                relpath = dataroot + "/" + f"{self.type}_" + file + ".pkl"
-                abspath = os.path.join(dirname, relpath)
-                sys.path.append(abspath) # TODO: maybe there's a better way to handle this
-                abspaths.append(abspath)
-            return abspaths
+            relpath = dataroot + "/" + (f"{self.type}_" if not is_vocab_file else "") + file + ".pkl"
+            abspath = os.path.join(dirname, relpath)
+            sys.path.append(abspath) # TODO: maybe there's a better way to handle this
+            return abspath
         
-
         super().__init__()
 
         assert type in ["train", "test", "valid"]
         self.type = type
         self.max_len: int = max_len
 
-        abspaths = resolve_paths()
+        files = (
+            "src",
+            "src_bert_ids",
+            "src_tags",
+            "trg",
+            "trg_bert_ids",
+            "trg_tags",
+            "similarity"
+        )
+        abspaths = [resolve_path(file) for file in files]
 
         self.src = pkl_load(abspaths[0])
         self.src_bert_ids = pkl_load(abspaths[1])
@@ -51,6 +45,9 @@ class OurDataset(Dataset):
         self.trg_tags = pkl_load(abspaths[5])
         self.similarity = pkl_load(abspaths[6])
 
+        word_to_idx = pkl_load(resolve_path("word_to_index", is_vocab_file=True))
+        self.sos_idx = word_to_idx[Specials.SOS]
+        self.eos_idx = word_to_idx[Specials.EOS]
 
     def __len__(self) -> int:
         return len(self.src)
@@ -82,8 +79,8 @@ class OurDataset(Dataset):
 
         src = trim_tensor(src_sent, self.max_len)
         content_trg = trim_tensor(trg_sent, self.max_len)
-        trg = trim_tensor(trg_sent, self.max_len, append=3) # EOS
-        trg_input = trim_tensor(trg_sent, self.max_len, prepend=2)
+        trg = trim_tensor(trg_sent, self.max_len, append=self.eos_idx)
+        trg_input = trim_tensor(trg_sent, self.max_len, prepend=self.sos_idx)
 
         # bert data_quora format
         bert_in = self.src_bert_ids[idx]
