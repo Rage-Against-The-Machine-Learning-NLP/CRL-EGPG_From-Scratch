@@ -107,41 +107,38 @@ if __name__ == "__main__":
     val_dl = DataLoader(val, batch_size=64, shuffle=False)
     test_dl = DataLoader(test, batch_size=64, shuffle=False)
 
-    count = 0
-    for data in train_dl:
-        if count >= 10:
-            break
-        count += 1
-        print(count, end="\t")
-        print([d.shape for d in data])
+    # works fine, uncomment if needed
+    # count = 0
+    # for data in train_dl:
+    #     if count >= 10:
+    #         break
+    #     count += 1
+    #     print(count, end="\t")
+    #     print([d.shape for d in data])
 
-    print("*" * 10)
-    count = 0
-    for data in test_dl:
-        if count >= 10:
-            break
-        count += 1
-        print(count, end="\t")
-        print([d.shape for d in data])
+    # print("*" * 10)
+    # count = 0
+    # for data in test_dl:
+    #     if count >= 10:
+    #         break
+    #     count += 1
+    #     print(count, end="\t")
+    #     print([d.shape for d in data])
 
-    print("*" * 10 )
-    count = 0
-    for data in val_dl:
-        if count >= 10:
-            break
-        count += 1
-        print(count, end="\t")
-        print([d.shape for d in data])
+    # print("*" * 10 )
+    # count = 0
+    # for data in val_dl:
+    #     if count >= 10:
+    #         break
+    #     count += 1
+    #     print(count, end="\t")
+    #     print([d.shape for d in data])
     
-    print("*" * 10 )
-    count = 0
-    for data in train_dl:
-        if count >= 1:
-            break
-        count += 1
-        print(count, end="\t")
-        for d in data:
-            print(d.shape, d)
-            print("*" * 10 )
+    # print("*" * 10 )
+    
+    entry = train_dl.dataset[0]
+    for t in entry:
+        print(t.shape, t)
+    
             
     
