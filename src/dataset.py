@@ -16,8 +16,6 @@ class OurDataset(Dataset):
             """
 
             files = (
-                "index_to_word",
-                "word_to_index",
                 "src",
                 "src_bert_ids",
                 "src_tags",
@@ -30,8 +28,7 @@ class OurDataset(Dataset):
             dirname = os.path.dirname(__file__)
             abspaths = []
             for file in files:
-                is_vocab_file = file in ("index_to_word", "word_to_index")
-                relpath = dataroot + "/" + (f"{self.type}_" if not is_vocab_file else "") + file + ".pkl"
+                relpath = dataroot + "/" + f"{self.type}_" + file + ".pkl"
                 abspath = os.path.join(dirname, relpath)
                 sys.path.append(abspath) # TODO: maybe there's a better way to handle this
                 abspaths.append(abspath)
@@ -46,17 +43,13 @@ class OurDataset(Dataset):
 
         abspaths = resolve_paths()
 
-        self.index_to_word = pkl_load(abspaths[0])
-        self.word_to_index = pkl_load(abspaths[1])
-        self.src = pkl_load(abspaths[2])
-        self.src_bert_ids = pkl_load(abspaths[3])
-        self.src_tags = pkl_load(abspaths[4])
-        self.trg = pkl_load(abspaths[5])
-        self.trg_bert_ids = pkl_load(abspaths[6])
-        self.trg_tags = pkl_load(abspaths[7])
-        self.similarity = pkl_load(abspaths[8])
-
-        self.vocab_size = len(self.word_to_index)
+        self.src = pkl_load(abspaths[0])
+        self.src_bert_ids = pkl_load(abspaths[1])
+        self.src_tags = pkl_load(abspaths[2])
+        self.trg = pkl_load(abspaths[3])
+        self.trg_bert_ids = pkl_load(abspaths[4])
+        self.trg_tags = pkl_load(abspaths[5])
+        self.similarity = pkl_load(abspaths[6])
 
 
     def __len__(self) -> int:
@@ -100,7 +93,7 @@ class OurDataset(Dataset):
         bert_trg = trim_tensor(bert_out, self.max_len + 2)
         bert_exmp = trim_tensor(exmp, self.max_len + 2)
 
-        return src, trg, content_trg, trg_input, bert_src, bert_trg, bert_exmp
+        return src, content_trg, trg, trg_input, bert_src, bert_trg, bert_exmp
 
 
 if __name__ == "__main__":
@@ -152,5 +145,3 @@ if __name__ == "__main__":
             print("*" * 10 )
             
     
-
-
