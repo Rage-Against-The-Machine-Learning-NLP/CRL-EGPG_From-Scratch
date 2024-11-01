@@ -191,7 +191,7 @@ def store_similar_sents(
     pkl_dump(similar_list, os.path.join(data_out_path, f"{sub_file}_similarity.pkl"))
 
 
-def store_indices_wrapper(sub_file, data_path, event):
+def store_indices_wrapper(sub_file: str, data_path: str, event) -> None:
     """
     wrapper to store indices for a sub_file
     """
@@ -200,7 +200,7 @@ def store_indices_wrapper(sub_file, data_path, event):
     event.set()  # signal that indices are stored
 
 
-def store_bert_ids_wrapper(sub_file, data_path, event):
+def store_bert_ids_wrapper(sub_file: str, data_path: str, event) -> None:
     """
     wrapper to store bert ids for a sub_file
     """
@@ -209,7 +209,7 @@ def store_bert_ids_wrapper(sub_file, data_path, event):
     print(f"\t\t-> stored bert ids for {sub_file}")
 
 
-def store_similar_sents_wrapper(sub_file, data_path, event):
+def store_similar_sents_wrapper(sub_file: str, data_path: str, event) -> None:
     """
     wrapper to store similar sentences for a sub_file
     """
@@ -218,7 +218,7 @@ def store_similar_sents_wrapper(sub_file, data_path, event):
     print(f"\t\t-> stored similar sentences for {sub_file}")
 
 
-def process_sub_file(sub_file, dataset_path):
+def process_sub_file(sub_file: str, dataset_path: str) -> None:
     """
     store indices, bert ids and similar sentences for a sub_file
     """
@@ -287,7 +287,7 @@ def main() -> None:
     print(f"processing complete\n\n")
 
 
-def show_sim():
+def show_sim() -> None:
     """
     show source, target-similar sentences and target sentence for a random line
     """

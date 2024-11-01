@@ -20,7 +20,7 @@ class Seq2SeqEncoder(nn.Module):
         drop_out: float = 0.2,
         bidirectional: bool = True,
         device: torch.device = torch.device("cpu"),
-    ):
+    ) -> None:
         super().__init__()
         args = {
             "input_size": input_dim,
@@ -41,19 +41,21 @@ class Seq2SeqEncoder(nn.Module):
             case _:
                 raise ValueError(f"Unsupported model type: {model_type}")
 
-    def forward(self, seq_arr: torch.Tensor, seq_len: torch.Tensor):
+    def forward(
+        self, seq_arr: torch.Tensor, seq_len: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         # NOTE: the original code sorts the input sequences by length, and restores the order.
         # NOTE:     this is no longer necessary, as below:
         # NOTE: https://discuss.pytorch.org/t/why-lengths-should-be-given-in-sorted-order-in-pack-padded-sequence/3540/8
 
         padded_input = pack_padded_sequence(
-            seq_arr, seq_len, batch_first=True, enforce_sorted=False
+            input=seq_arr, lengths=seq_len, batch_first=True, enforce_sorted=False
         )
 
         # todo: will this still work if num_layers > 1?
         # original code only seems to test for num_layers == 1
         output, hidden = self.model(padded_input)
-        output, _ = pad_packed_sequence(output, batch_first=True)
-        hidden = torch.cat(tuple(hidden), dim=-1)
+        output, _ = pad_packed_sequence(sequence=output, batch_first=True)
+        hidden = torch.cat(tensors=tuple(hidden), dim=-1)
 
         return output, hidden
