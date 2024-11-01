@@ -51,7 +51,7 @@ class Seq2SeqEncoder(nn.Module):
         padded_input = pack_padded_sequence(
             input=seq_arr, lengths=seq_len, batch_first=True, enforce_sorted=False
         )
-
+ 
         # todo: will this still work if num_layers > 1?
         # original code only seems to test for num_layers == 1
         output, hidden = self.model(padded_input)

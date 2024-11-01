@@ -21,6 +21,6 @@ def pkl_dump(data, file_path: str) -> None:
         pkl.dump(data, file)
 
 
-def pkl_load(file_path: str) -> None:
+def pkl_load(file_path: str):
     with open(file_path, "rb") as file:
         return pkl.load(file)

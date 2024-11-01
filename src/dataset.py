@@ -9,7 +9,7 @@ import torch
 
 class OurDataset(Dataset):
     def __init__(self, dataroot: str, max_len: int, type: str):
-        def resolve_path(file: str, is_vocab_file: bool = False) -> List[str]:
+        def resolve_path(file: str, is_vocab_file: bool = False) -> str:
             """
             returns absolute path of a file associated with the dataset (train/test/valid)
             resolved against the root path provided
