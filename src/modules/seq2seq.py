@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
-class Seq2SeqModel(Enum):
+class Seq2SeqEncoderModel(Enum):
     GRU = "gru"
     LSTM = "lstm"
 
@@ -13,7 +13,7 @@ class Seq2SeqModel(Enum):
 class Seq2SeqEncoder(nn.Module):
     def __init__(
         self,
-        model_type: Seq2SeqModel = Seq2SeqModel.GRU,
+        model_type: Seq2SeqEncoderModel = Seq2SeqEncoderModel.GRU,
         hidden_dim: int = 256,
         input_dim: int = 256,
         num_layers: int = 1,
@@ -34,9 +34,9 @@ class Seq2SeqEncoder(nn.Module):
         }
 
         match model_type:
-            case Seq2SeqModel.GRU:
+            case Seq2SeqEncoderModel.GRU:
                 self.model = nn.GRU(**args)
-            case Seq2SeqModel.LSTM:
+            case Seq2SeqEncoderModel.LSTM:
                 self.model = nn.LSTM(**args)
             case _:
                 raise ValueError(f"Unsupported model type: {model_type}")
