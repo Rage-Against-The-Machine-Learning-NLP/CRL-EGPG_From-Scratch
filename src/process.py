@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Dict, List, cast, Tuple
 import random
 import multiprocessing
@@ -141,6 +142,28 @@ def store_bert_ids(
     pkl_dump(trg_bert_ids, os.path.join(data_out_path, f"{sub_file}_trg_bert_ids.pkl"))
 
 
+def _get_similar_sents(
+    i: int, NUM_LINES: int, tokens: List[List[int]], tags: List[List[int]]
+) -> Tuple[int, List[int]]:
+    similarity = [np.inf for _ in range(NUM_LINES)]
+
+    for j in range(NUM_LINES):
+        if i == j:
+            continue
+
+        if abs(len(tokens[i]) - len(tokens[j])) > 2:
+            continue
+        if len(list(set(tokens[i]))) - len(list(set(tokens[i]) & set(tokens[j]))) < 2:
+            continue
+
+        similarity[j] = editdistance.eval(tags[i], tags[j])
+
+    best_score = min(similarity)
+    most_similar = [idx for idx, score in enumerate(similarity) if score == best_score]
+
+    return i, random.sample(most_similar, min(5, len(most_similar)))
+
+
 def store_similar_sents(
     data_path: str = "./data/para",
     cleaned_dir_name: str = "processed",
@@ -160,38 +183,22 @@ def store_similar_sents(
 
     NUM_LINES = len(tokens)
 
-    similar_list = []
-    for i in range(len(tokens)):
-        similarity = [np.inf for _ in range(len(tokens))]
+    with multiprocessing.Pool() as pool:
+        from functools import partial
 
-        if i % int(1e5) == 0 and i > 0:
-            print(f"\t\t\t[store_similar_sents({sub_file})] line {i} of {NUM_LINES}")
+        partial_get_similar_sents = partial(
+            _get_similar_sents, NUM_LINES=NUM_LINES, tokens=tokens, tags=tags
+        )
+        results = pool.map(partial_get_similar_sents, range(NUM_LINES))
 
-        for j in range(len(tokens)):
-            if i == j:
-                continue
-
-            if abs(len(tokens[i]) - len(tokens[j])) > 2:
-                continue
-            if (
-                len(list(set(tokens[i]))) - len(list(set(tokens[i]) & set(tokens[j])))
-                < 2
-            ):
-                continue
-
-            similarity[j] = editdistance.eval(tags[i], tags[j])
-
-        best_score = min(similarity)
-        most_similar = [
-            idx for idx, score in enumerate(similarity) if score == best_score
-        ]
-
-        similar_list.append(random.sample(most_similar, min(5, len(most_similar))))
+    similar_list = [[] for _ in range(NUM_LINES)]
+    for i, similar in results:
+        similar_list[i] = similar
 
     pkl_dump(similar_list, os.path.join(data_out_path, f"{sub_file}_similarity.pkl"))
 
 
-def store_indices_wrapper(sub_file: str, data_path: str, event) -> None:
+def _store_indices_wrapper(sub_file: str, data_path: str, event) -> None:
     """
     wrapper to store indices for a sub_file
     """
@@ -200,7 +207,7 @@ def store_indices_wrapper(sub_file: str, data_path: str, event) -> None:
     event.set()  # signal that indices are stored
 
 
-def store_bert_ids_wrapper(sub_file: str, data_path: str, event) -> None:
+def _store_bert_ids_wrapper(sub_file: str, data_path: str, event) -> None:
     """
     wrapper to store bert ids for a sub_file
     """
@@ -209,7 +216,7 @@ def store_bert_ids_wrapper(sub_file: str, data_path: str, event) -> None:
     print(f"\t\t-> stored bert ids for {sub_file}")
 
 
-def store_similar_sents_wrapper(sub_file: str, data_path: str, event) -> None:
+def _store_similar_sents_wrapper(sub_file: str, data_path: str, event) -> None:
     """
     wrapper to store similar sentences for a sub_file
     """
@@ -227,14 +234,14 @@ def process_sub_file(sub_file: str, dataset_path: str) -> None:
     event = multiprocessing.Event()
 
     indices_process = multiprocessing.Process(
-        target=store_indices_wrapper, args=(sub_file, dataset_path, event)
+        target=_store_indices_wrapper, args=(sub_file, dataset_path, event)
     )
 
     bert_process = multiprocessing.Process(
-        target=store_bert_ids_wrapper, args=(sub_file, dataset_path, event)
+        target=_store_bert_ids_wrapper, args=(sub_file, dataset_path, event)
     )
     similar_process = multiprocessing.Process(
-        target=store_similar_sents_wrapper, args=(sub_file, dataset_path, event)
+        target=_store_similar_sents_wrapper, args=(sub_file, dataset_path, event)
     )
 
     indices_process.start()
@@ -253,9 +260,7 @@ def main() -> None:
     parser.add_argument(
         "--dataset", type=str, required=True, help="dataset name (para / quora)"
     )
-    parser.add_argument(
-        "--sequential", action="store_true", help="use sequential processing"
-    )
+
     args = parser.parse_args()
     dataset = args.dataset
     if dataset not in ["para", "quora"]:
@@ -269,67 +274,65 @@ def main() -> None:
 
     sub_files = ["test", "valid", "train"]
 
-    if not args.sequential:
-        processes = []
-        for sub_file in sub_files:
-            p = multiprocessing.Process(
-                target=process_sub_file, args=(sub_file, dataset_path)
-            )
-            processes.append(p)
-            p.start()
+    start_time = time.time()
+    processes = []
+    for sub_file in sub_files:
+        p = multiprocessing.Process(
+            target=process_sub_file, args=(sub_file, dataset_path)
+        )
+        processes.append(p)
+        p.start()
 
-        for p in processes:
-            p.join()
-    else:
-        for sub_file in sub_files:
-            process_sub_file(sub_file, dataset_path)
+    for p in processes:
+        p.join()
 
-    print(f"processing complete\n\n")
+    time_taken = time.time() - start_time
+    print(f"processing complete in {time_taken}s")
 
 
-def show_sim() -> None:
-    """
-    show source, target-similar sentences and target sentence for a random line
-    """
-    data_path = "./data/quora"
-    cleaned_dir_name = "processed"
-    sub_file = "test"
+# def show_sim() -> None:
+#     """
+#     show source, target-similar sentences and target sentence for a random line
+#     """
+#     data_path = "./data/quora"
+#     cleaned_dir_name = "processed"
+#     sub_file = "test"
 
-    data_out_path = os.path.join(data_path, cleaned_dir_name)
+#     data_out_path = os.path.join(data_path, cleaned_dir_name)
 
-    similar_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_similarity.pkl"))
-    tok_data_trg = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg.pkl"))
-    tok_data_src = pkl_load(os.path.join(data_out_path, f"{sub_file}_src.pkl"))
-    tag_data_trg = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg_tags.pkl"))
-    index_to_word = pkl_load(os.path.join(data_out_path, "index_to_word.pkl"))
+#     similar_data = pkl_load(os.path.join(data_out_path, f"{sub_file}_similarity.pkl"))
+#     tok_data_trg = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg.pkl"))
+#     tok_data_src = pkl_load(os.path.join(data_out_path, f"{sub_file}_src.pkl"))
+#     tag_data_trg = pkl_load(os.path.join(data_out_path, f"{sub_file}_trg_tags.pkl"))
+#     index_to_word = pkl_load(os.path.join(data_out_path, "index_to_word.pkl"))
 
-    similar_list = cast(List[List[int]], similar_data)
-    tokens_trg = cast(List[List[int]], tok_data_trg)
-    tokens_src = cast(List[List[int]], tok_data_src)
-    tags_trg = cast(List[List[int]], tag_data_trg)
-    index_to_word = cast(Dict[int, str], index_to_word)
+#     similar_list = cast(List[List[int]], similar_data)
+#     tokens_trg = cast(List[List[int]], tok_data_trg)
+#     tokens_src = cast(List[List[int]], tok_data_src)
+#     tags_trg = cast(List[List[int]], tag_data_trg)
+#     index_to_word = cast(Dict[int, str], index_to_word)
 
-    # show for a random line
-    idx = random.randint(0, len(tokens_trg))
+#     # show for a random line
+#     idx = random.randint(0, len(tokens_trg))
 
-    print("SOURCE SENTENCE: ")
-    sentence = " ".join([index_to_word[idx] for idx in tokens_src[idx]])
-    print(f"\tSentence: {sentence}")
-    print("\n")
+#     print("SOURCE SENTENCE: ")
+#     sentence = " ".join([index_to_word[idx] for idx in tokens_src[idx]])
+#     print(f"\tSentence: {sentence}")
+#     print("\n")
 
-    print("SIMILAR SENTENCES (TO TARGET STYLE BY PoS): ")
-    for sim_idx in similar_list[idx]:
-        sim_sentence = " ".join([index_to_word[idx] for idx in tokens_trg[sim_idx]])
-        sim_tag_list = [index_to_word[idx] for idx in tags_trg[sim_idx]]
-        print(f"\tSentence: {sim_sentence}")
-        print(f"\tTags: {sim_tag_list}")
-        print("\n")
+#     print("SIMILAR SENTENCES (TO TARGET STYLE BY PoS): ")
+#     for sim_idx in similar_list[idx]:
+#         sim_sentence = " ".join([index_to_word[idx] for idx in tokens_trg[sim_idx]])
+#         sim_tag_list = [index_to_word[idx] for idx in tags_trg[sim_idx]]
+#         print(f"\tSentence: {sim_sentence}")
+#         print(f"\tTags: {sim_tag_list}")
+#         print("\n")
 
-    sentence = " ".join([index_to_word[idx] for idx in tokens_trg[idx]])
-    tag_list = [index_to_word[idx] for idx in tags_trg[idx]]
-    print("TARGET SENTENCE: ")
-    print(f"\tSentence: {sentence}")
-    print(f"\tTags: {tag_list}")
+#     sentence = " ".join([index_to_word[idx] for idx in tokens_trg[idx]])
+#     tag_list = [index_to_word[idx] for idx in tags_trg[idx]]
+#     print("TARGET SENTENCE: ")
+#     print(f"\tSentence: {sentence}")
+#     print(f"\tTags: {tag_list}")
 
 
 if __name__ == "__main__":
