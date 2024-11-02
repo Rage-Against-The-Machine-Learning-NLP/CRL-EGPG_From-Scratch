@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
-class Seq2SeqEncoderModel(Enum):
+class Seq2SeqEncoderModelType(Enum):
     GRU = "gru"
     LSTM = "lstm"
 
@@ -13,13 +13,13 @@ class Seq2SeqEncoderModel(Enum):
 class Seq2SeqEncoder(nn.Module):
     def __init__(
         self,
-        model_type: Seq2SeqEncoderModel = Seq2SeqEncoderModel.GRU,
+        model_type: Seq2SeqEncoderModelType = Seq2SeqEncoderModelType.GRU,
         hidden_dim: int = 256,
         input_dim: int = 256,
         num_layers: int = 1,
         drop_out: float = 0.2,
         bidirectional: bool = True,
-        device: torch.device = torch.device("cpu"),
+        device: torch.device = torch.device(device="cpu"),
     ) -> None:
         super().__init__()
         args = {
@@ -34,9 +34,9 @@ class Seq2SeqEncoder(nn.Module):
         }
 
         match model_type:
-            case Seq2SeqEncoderModel.GRU:
+            case Seq2SeqEncoderModelType.GRU:
                 self.model = nn.GRU(**args)
-            case Seq2SeqEncoderModel.LSTM:
+            case Seq2SeqEncoderModelType.LSTM:
                 self.model = nn.LSTM(**args)
             case _:
                 raise ValueError(f"Unsupported model type: {model_type}")
@@ -52,8 +52,7 @@ class Seq2SeqEncoder(nn.Module):
             input=seq_arr, lengths=seq_len, batch_first=True, enforce_sorted=False
         )
  
-        # todo: will this still work if num_layers > 1?
-        # original code only seems to test for num_layers == 1
+        # todo: will this still work if num_layers > 1? original configs only have n_l==1
         output, hidden = self.model(padded_input)
         output, _ = pad_packed_sequence(sequence=output, batch_first=True)
         hidden = torch.cat(tensors=tuple(hidden), dim=-1)
