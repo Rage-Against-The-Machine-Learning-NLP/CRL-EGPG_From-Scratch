@@ -1,11 +1,11 @@
 {
-  "model_name":"Seq2Seq",
+  "model_name": "Seq2Seq",
   "glove_file": "./glove/glove.6B.300d.txt",
   "vocab_file": "quora/processed/word_to_index.pkl",
   "embedding_dim": 300,
   "vocabulary_dim": 23922,
   "learning_rate": 0.0001,
-  "encoder":{
+  "encoder": {
     "hidden_dim": 512,
     "input_dim": 300,
     "num_layers": 1,
@@ -13,13 +13,12 @@
     "final_out_dim": 1024,
     "drop_out": 0.2
   },
-  "decoder":{
+  "decoder": {
     "hidden_dim": 512,
     "input_dim": 1324,
     "num_layers": 1,
     "drop_out": 0.2
   },
-
   "style_attn": {
     "style_in": 768,
     "style_out": 300
