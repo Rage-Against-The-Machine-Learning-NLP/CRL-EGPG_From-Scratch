@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 
-import utils
+from .utils import resolve_relpath
 
 
 @dataclass
@@ -50,8 +50,8 @@ def load_config_from_json(file_path: str) -> ModelConfig:
     # Create the main ModelConfig instance
     model_config = ModelConfig(
         model_name = data['model_name'],
-        glove_file = utils.resolve_relpath(data['glove_file']), # TODO: check path correctness where called
-        vocab_file = utils.resolve_relpath(data['vocab_file']), # TODO: check path correctness where called
+        glove_file = resolve_relpath(data['glove_file']), # TODO: check path correctness where called
+        vocab_file = resolve_relpath(data['vocab_file']), # TODO: check path correctness where called
         embedding_dim = data['embedding_dim'],
         vocabulary_dim = data['vocabulary_dim'],
         learning_rate = data["learning_rate"],
@@ -64,5 +64,5 @@ def load_config_from_json(file_path: str) -> ModelConfig:
 
 
 if __name__ == "__main__":
-    model_config = load_config_from_json(utils.resolve_relpath("../config.json"))
+    model_config = load_config_from_json(resolve_relpath("../config.json"))
     print(model_config)

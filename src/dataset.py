@@ -1,7 +1,7 @@
 import os, sys
 import random
 from typing import List
-from utils import pkl_load, Specials
+from src.utils import pkl_load, Specials
 
 from torch.utils.data import Dataset, DataLoader
 import torch
