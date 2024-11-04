@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import pickle as pkl
+import os, sys
 
 from transformers import BertTokenizer
 
@@ -24,3 +25,10 @@ def pkl_dump(data, file_path: str) -> None:
 def pkl_load(file_path: str):
     with open(file_path, "rb") as file:
         return pkl.load(file)
+
+
+def resolve_relpath(relpath: str) -> str:
+    dirname = os.path.dirname(__file__)
+    abspath = os.path.join(dirname, relpath)    
+    sys.path.append(abspath)
+    return abspath
