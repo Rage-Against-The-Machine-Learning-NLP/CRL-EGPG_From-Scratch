@@ -9,13 +9,16 @@ class EncoderConfig:
     hidden_dim: int
     input_dim: int
     num_layers: int
-    bidirectional: int
+    bidirectional: bool
     final_out_dim: int
+    drop_out: int
 
 @dataclass
 class DecoderConfig:
     hidden_dim: int
     input_dim: int
+    num_layers: int
+    drop_out: int
 
 @dataclass
 class StyleAttentionConfig:
@@ -27,6 +30,7 @@ class ModelConfig:
     model_name: str
     embedding_dim: int
     vocabulary_dim: int
+    learning_rate: str
     encoder: EncoderConfig
     decoder: DecoderConfig
     style_attn: StyleAttentionConfig
@@ -46,6 +50,7 @@ def load_config_from_json(file_path: str) -> ModelConfig:
         model_name=data['model_name'],
         embedding_dim=data['embedding_dim'],
         vocabulary_dim=data['vocabulary_dim'],
+        learning_rate=data["learning_rate"],
         encoder=encoder_config,
         decoder=decoder_config,
         style_attn=style_attn_config
