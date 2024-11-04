@@ -10,37 +10,40 @@ class ScaledDotProductAttention(nn.Module):
         self,
         decoder_hidden_dim: int = 256,
         encoder_final_out_dim: int = 256,
-        device: torch.device = torch.device(device="cpu")
+        device: torch.device = torch.device(device="cpu"),
     ):
         super().__init__()
-        
-        self.weight: nn.Parameter = nn.Parameter(torch.empty(
+
+        self.weight: nn.Parameter = nn.Parameter(
+            torch.empty(
                 [
-                    decoder_hidden_dim, # queries' dim
-                    encoder_final_out_dim # keys' dim
-                ], 
-                device=device, 
-                requires_grad=True
-            ), 
-            requires_grad=True
+                    decoder_hidden_dim,  # queries' dim
+                    encoder_final_out_dim,  # keys' dim
+                ],
+                device=device,
+                requires_grad=True,
+            ),
+            requires_grad=True,
         )
 
         nn.init.normal_(
-            self.weight, 
-            mean=0, 
-            std=np.sqrt(2 / (decoder_hidden_dim + encoder_final_out_dim))
+            self.weight,
+            mean=0,
+            std=np.sqrt(2 / (decoder_hidden_dim + encoder_final_out_dim)),
         )
 
     def forward(
-            self, 
-            query: torch.Tensor, 
-            key: torch.Tensor, 
-            value: torch.Tensor, 
-            mask: torch.Tensor, 
-            bias: torch.Tensor | None = None
-        ) -> tuple[torch.Tensor, torch.Tensor]:
+        self,
+        query: torch.Tensor,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        mask: torch.Tensor,
+        bias: torch.Tensor | None = None,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
 
-        attn_weight: torch.Tensor = key.bmm(query.mm(self.weight).unsqueeze(dim=2)).squeeze(dim=2)
+        attn_weight: torch.Tensor = key.bmm(
+            query.mm(self.weight).unsqueeze(dim=2)
+        ).squeeze(dim=2)
         if bias is not None:
             attn_weight += bias
 
@@ -50,4 +53,3 @@ class ScaledDotProductAttention(nn.Module):
         attn_weight = attn_weight.softmax(dim=-1)
         attn_out: torch.Tensor = (attn_weight.unsqueeze(dim=2) * value).sum(dim=1)
         return attn_out, attn_weight
-
