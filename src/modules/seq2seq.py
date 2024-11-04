@@ -7,7 +7,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from attention import ScaledDotProductAttention
 
 
-class Seq2SeqEncoderModelType(Enum):
+class Seq2SeqModelType(Enum):
     GRU = "gru"
     LSTM = "lstm"
 
@@ -15,7 +15,7 @@ class Seq2SeqEncoderModelType(Enum):
 class Seq2SeqEncoder(nn.Module):
     def __init__(
         self,
-        model_type: Seq2SeqEncoderModelType = Seq2SeqEncoderModelType.GRU,
+        model_type: Seq2SeqModelType = Seq2SeqModelType.GRU,
         hidden_dim: int = 256,
         input_dim: int = 256,
         num_layers: int = 1,
@@ -36,9 +36,9 @@ class Seq2SeqEncoder(nn.Module):
         }
 
         match model_type:
-            case Seq2SeqEncoderModelType.GRU:
+            case Seq2SeqModelType.GRU:
                 self.model = nn.GRU(**args)
-            case Seq2SeqEncoderModelType.LSTM:
+            case Seq2SeqModelType.LSTM:
                 self.model = nn.LSTM(**args)
             case _:
                 raise ValueError(f"Unsupported model type: {model_type}")
@@ -67,9 +67,12 @@ class Seq2SeqDecoder(nn.Module):
         self,
         word_emb_layer: nn.Embedding,
         style_attention_input_dim: int,
+        model_type: Seq2SeqModelType = Seq2SeqModelType.GRU,
         encoder_final_out_dim: int = 256,
         decoder_hidden_dim: int = 256,
         vocabulary_dim: int = 1,
+        num_layers: int = 1,
+        drop_out: float = 0.2,
         input_dim: int = 256,
         hidden_dim: int = 256,
         device: torch.device = torch.device(device="cpu"),
@@ -87,14 +90,25 @@ class Seq2SeqDecoder(nn.Module):
         self.attention_layer = ScaledDotProductAttention(
             decoder_hidden_dim, encoder_final_out_dim, device
         )
-        self.gru = nn.GRU(
-            input_size=input_dim,
-            hidden_size=hidden_dim,
-            num_layers=1,
-            bias=True,
-            batch_first=True,
-            bidirectional=False,
-        )
+
+        args = {
+            "input_size": input_dim,
+            "hidden_size": hidden_dim,
+            "num_layers": num_layers,
+            "bias": True,
+            "batch_first": True,
+            "dropout": 0 if num_layers == 1 else drop_out,
+            "bidirectional": False,
+            "device": device,
+        }
+        match model_type:
+            case Seq2SeqModelType.GRU:
+                self.model = nn.GRU(**args)
+            case Seq2SeqModelType.LSTM:
+                self.model = nn.LSTM(**args)
+            case _:
+                raise ValueError(f"Unsupported model type: {model_type}")
+
         self.projection_layer = nn.Linear(hidden_dim, vocabulary_dim)
 
     def forward(
@@ -120,7 +134,7 @@ class Seq2SeqDecoder(nn.Module):
                 context, _ = self.attention_layer(
                     hidden[-1], encoder_output, encoder_output, encoder_mask
                 )
-                output, hidden = self.gru(
+                output, hidden = self.model(
                     torch.concat(
                         [context, decoder_input_emb[:, step]], dim=-1
                     ).unsqueeze(dim=1),
@@ -148,7 +162,7 @@ class Seq2SeqDecoder(nn.Module):
                 context, _ = self.attention_layer(
                     hidden[-1], encoder_output, encoder_output, encoder_mask
                 )
-                output, hidden = self.gru(
+                output, hidden = self.model(
                     torch.concat([context, previous_vec], dim=-1).unsqueeze(dim=1),
                     hidden,
                 )
