@@ -28,6 +28,8 @@ class StyleAttentionConfig:
 @dataclass
 class ModelConfig:
     model_name: str
+    glove_file: str
+    vocab_file: str
     embedding_dim: int
     vocabulary_dim: int
     learning_rate: str
@@ -47,13 +49,15 @@ def load_config_from_json(file_path: str) -> ModelConfig:
     
     # Create the main ModelConfig instance
     model_config = ModelConfig(
-        model_name=data['model_name'],
-        embedding_dim=data['embedding_dim'],
-        vocabulary_dim=data['vocabulary_dim'],
-        learning_rate=data["learning_rate"],
-        encoder=encoder_config,
-        decoder=decoder_config,
-        style_attn=style_attn_config
+        model_name = data['model_name'],
+        glove_file = utils.resolve_relpath(data['glove_file']), # TODO: check path correctness where called
+        vocab_file = utils.resolve_relpath(data['vocab_file']), # TODO: check path correctness where called
+        embedding_dim = data['embedding_dim'],
+        vocabulary_dim = data['vocabulary_dim'],
+        learning_rate = data["learning_rate"],
+        encoder = encoder_config,
+        decoder = decoder_config,
+        style_attn = style_attn_config
     )
     
     return model_config

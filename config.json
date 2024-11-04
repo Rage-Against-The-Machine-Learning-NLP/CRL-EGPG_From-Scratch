@@ -1,5 +1,7 @@
 {
   "model_name":"Seq2Seq",
+  "glove_file": "./glove/glove.6B.300d.txt",
+  "vocab_file": "quora/processed/word_to_index.pkl",
   "embedding_dim": 300,
   "vocabulary_dim": 23922,
   "learning_rate": 0.0001,
