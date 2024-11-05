@@ -26,7 +26,6 @@
     "style_out": 300
   },
   "training": {
-    "save_freq": 15,
     "batch_size": 128,
     "num_epochs": 45,
     "learning_rate": 0.0001,

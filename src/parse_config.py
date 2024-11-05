@@ -31,7 +31,6 @@ class StyleAttentionConfig:
 
 @dataclass
 class TrainingConfig:
-    save_freq: int
     batch_size: int
     num_epochs: int
     learning_rate: float
