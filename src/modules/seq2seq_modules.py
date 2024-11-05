@@ -110,6 +110,12 @@ class Seq2SeqDecoder(nn.Module):
                 raise ValueError(f"Unsupported model type: {model_type}")
 
         self.projection_layer = nn.Linear(hidden_dim, vocabulary_dim)
+        self.mode = "train"
+
+    def set_mode(self, mode: str):
+        if mode not in ["train", "eval", "infer"]:
+            raise ValueError(f"Unknown mode: {self.mode}")
+        self.mode = mode
 
     def forward(
         self,
@@ -119,14 +125,13 @@ class Seq2SeqDecoder(nn.Module):
         decoder_input: torch.Tensor,
         style_emb: torch.Tensor,
         max_seq_len: int = 21,
-        mode: str = "train",
     ) -> torch.Tensor:
 
         style_feature = style_emb[:, -1, :]
         encoder_hidden = torch.concat([encoder_hidden, style_feature], dim=-1)
         hidden: torch.Tensor = self.W_enc2dec(encoder_hidden).unsqueeze(0)
 
-        if mode in ["train", "eval"]:
+        if self.mode in ["train", "eval"]:
             decoder_input_emb = self.word_emb_layer(decoder_input)
             decoder_output_arr = []
 
@@ -147,7 +152,7 @@ class Seq2SeqDecoder(nn.Module):
             )
             return decoder_output
 
-        elif mode == "infer":
+        elif self.mode == "infer":
             id_arr = []
             previous_vec = self.word_emb_layer(
                 torch.ones(
@@ -174,6 +179,3 @@ class Seq2SeqDecoder(nn.Module):
 
             decoded_ids = torch.stack(id_arr, dim=1)
             return decoded_ids
-
-        else:
-            raise ValueError(f"Unknown mode: {mode}")

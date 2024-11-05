@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 
+import src.utils as utils
 from src.parse_config import ModelConfig
 from .seq2seq_modules import Seq2SeqEncoder, Seq2SeqDecoder, Seq2SeqModelType
 
-import src.utils as utils
 
 class Seq2Seq(nn.Module):
     def __init__(
@@ -21,7 +21,9 @@ class Seq2Seq(nn.Module):
             padding_idx=0,
         )
 
-        glove_weight = utils.initialise_word_embedding(config.glove_file, config.vocab_file)
+        glove_weight = utils.initialise_word_embedding(
+            config.glove_file, config.vocab_file
+        )
         self.emb_layer.weight.data.copy_(torch.from_numpy(glove_weight))
         self.device = device
 
@@ -48,6 +50,9 @@ class Seq2Seq(nn.Module):
             device=self.device,
         )
 
+    def set_decoder_mode(self, mode: str):
+        self.decoder.set_mode(mode)
+
     def forward(
         self,
         seq_arr: torch.Tensor,
@@ -56,9 +61,8 @@ class Seq2Seq(nn.Module):
         response: torch.Tensor = None,
         decoder_input: torch.Tensor = None,
         max_seq_len: int = 16,
-        mode: str = "train"
     ):
-        
+
         seq_arr = seq_arr.to(self.device)
         seq_len = seq_len.to(self.device)
         style_emb = style_emb.to(self.device)
@@ -78,7 +82,5 @@ class Seq2Seq(nn.Module):
             decoder_input,
             style_emb,
             max_seq_len=max_seq_len,
-            mode=mode
         )
         return output, encoder_hidden
-
