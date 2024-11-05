@@ -1,6 +1,5 @@
 import os, sys
 import random
-from typing import List
 from src.utils import pkl_load, Specials
 
 from torch.utils.data import Dataset, DataLoader
@@ -69,7 +68,7 @@ class OurDataset(Dataset):
             if prepend is not None:
                 trunc[0] = prepend
             if append is not None:
-                trunc[start + len(data)] = append
+                trunc[start + length] = append
             
             return trunc
 
@@ -93,16 +92,21 @@ class OurDataset(Dataset):
         return src, content_trg, trg, trg_input, bert_src, bert_trg, bert_exmp
 
 
+def get_dataloaders(dataroot: str, max_len: int, batch_size: int):
+    train = OurDataset(dataroot, max_len, "train")
+    val = OurDataset(dataroot, max_len, "valid")
+    test = OurDataset(dataroot, max_len, "test")
+    
+    train_dl = DataLoader(train, batch_size=batch_size, shuffle=False)
+    val_dl = DataLoader(val, batch_size=batch_size, shuffle=False)
+    test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
+
+    return train_dl, val_dl, test_dl
+
+
 if __name__ == "__main__":
     # some basic code to test if the dataset is working fine
-
-    train = OurDataset("../data/quora/processed", 15, "train")
-    val = OurDataset("../data/quora/processed", 15, "valid")
-    test = OurDataset("../data/quora/processed", 15, "test")
-
-    train_dl = DataLoader(train, batch_size=64, shuffle=False)
-    val_dl = DataLoader(val, batch_size=64, shuffle=False)
-    test_dl = DataLoader(test, batch_size=64, shuffle=False)
+    train_dl, val_dl, test_dl = get_dataloaders("../data/quora/processed", 15, 64)
 
     # works fine, uncomment if needed
     # count = 0
