@@ -31,10 +31,12 @@ class StyleAttentionConfig:
 
 @dataclass
 class TrainingConfig:
-    batch_size: int
     num_epochs: int
-    learning_rate: float
     max_sent_len: int
+    batch_size: int
+    lambda_1: float
+    lambda_2: float
+    learning_rate: float
     seq2seq_model_type: str
     style_extractor_model_type: str
     loss_file: str

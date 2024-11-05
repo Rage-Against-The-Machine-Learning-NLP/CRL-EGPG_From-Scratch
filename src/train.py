@@ -16,12 +16,14 @@ from src.modules.loops import train_loop, eval_loop
 
 
 def train_model(
+    num_epochs: int,
+    lambda_1: float,
+    lambda_2: float,
     seq2seq: Seq2Seq,
     style_extractor: StyleExtractor,
     optimizer: torch.optim.Optimizer,
     train_dl: DataLoader,
     val_dl: DataLoader,
-    num_epochs: int,
     model_save_dir: str,
     loss_file: str,
     perplexity_file: str,
@@ -33,7 +35,17 @@ def train_model(
     ppl_arr = []
 
     for epoch in range(num_epochs):
-        loss = train_loop(seq2seq, style_extractor, optimizer, train_dl, epoch, device)
+        # base, content, style losses
+        loss = train_loop(
+            epoch,
+            lambda_1,
+            lambda_2,
+            seq2seq,
+            style_extractor,
+            optimizer,
+            train_dl,
+            device,
+        )
         ppl = eval_loop(seq2seq, style_extractor, val_dl, epoch)
         loss_arr.append(loss)
         ppl_arr.append(ppl)
@@ -80,18 +92,20 @@ def main(config_file: str):
     if not os.path.exists(config.results_dir):
         os.makedirs(config.results_dir)
 
-    # train_model(
-    #     seq2seq,
-    #     style_extractor,
-    #     optimizer,
-    #     train_dl,
-    #     val_dl,
-    #     config.training.num_epochs,
-    #     config.model_save_dir,
-    #     config.training.loss_file,
-    #     config.training.perplexity_file,
-    #     device,
-    # )
+    train_model(
+        config.training.num_epochs,
+        config.training.lambda_1,
+        config.training.lambda_2,
+        seq2seq,
+        style_extractor,
+        optimizer,
+        train_dl,
+        val_dl,
+        config.model_save_dir,
+        config.training.loss_file,
+        config.training.perplexity_file,
+        device,
+    )
 
 
 if __name__ == "__main__":
