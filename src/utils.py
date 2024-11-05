@@ -30,7 +30,7 @@ def pkl_load(file_path: str):
 
 def resolve_relpath(relpath: str) -> str:
     dirname = os.path.dirname(__file__)
-    abspath = os.path.join(dirname, relpath)
+    abspath = os.path.abspath(os.path.join(dirname, relpath))
     sys.path.append(abspath)
     return abspath
 
