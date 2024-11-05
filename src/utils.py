@@ -53,8 +53,7 @@ def load_glove_model(filepath: str) -> dict[str, np.ndarray]:
 
 
 def initialise_word_embedding(glovefile: str, vocabfile: str) -> np.ndarray:
-    with open(vocabfile, "rb") as f:
-        vocab: dict[str, int] = pkl_load(f)
+    vocab: dict[str, int] = pkl_load(vocabfile)
 
     glove_emb: dict[str, np.ndarray] = load_glove_model(glovefile)
     word_emb: np.ndarray = np.zeros((len(vocab), 300))
