@@ -58,7 +58,6 @@ class Seq2Seq(nn.Module):
         seq_arr: torch.Tensor,
         seq_len: torch.Tensor,
         style_emb: torch.Tensor,
-        response: torch.Tensor = None,
         decoder_input: torch.Tensor = None,
         max_seq_len: int = 16,
     ):
@@ -66,8 +65,6 @@ class Seq2Seq(nn.Module):
         seq_arr = seq_arr.to(self.device)
         seq_len = seq_len.to(self.device)
         style_emb = style_emb.to(self.device)
-        if response is not None:
-            response = response.to(self.device)
         if decoder_input is not None:
             decoder_input = decoder_input.to(self.device)
 
@@ -78,7 +75,6 @@ class Seq2Seq(nn.Module):
             encoder_hidden,
             encoder_output,
             encoder_mask,
-            response,
             decoder_input,
             style_emb,
             max_seq_len=max_seq_len,
