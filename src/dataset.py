@@ -14,11 +14,17 @@ class OurDataset(Dataset):
             resolved against the root path provided
             """
             dirname = os.path.dirname(__file__)
-            relpath = dataroot + "/" + (f"{self.type}_" if not is_vocab_file else "") + file + ".pkl"
+            relpath = (
+                dataroot
+                + "/"
+                + (f"{self.type}_" if not is_vocab_file else "")
+                + file
+                + ".pkl"
+            )
             abspath = os.path.join(dirname, relpath)
-            sys.path.append(abspath) # TODO: maybe there's a better way to handle this
+            sys.path.append(abspath)  # TODO: maybe there's a better way to handle this
             return abspath
-        
+
         super().__init__()
 
         assert type in ["train", "test", "valid"]
@@ -32,7 +38,7 @@ class OurDataset(Dataset):
             "trg",
             "trg_bert_ids",
             "trg_tags",
-            "similarity"
+            "similarity",
         )
         abspaths = [resolve_path(file) for file in files]
 
@@ -56,20 +62,20 @@ class OurDataset(Dataset):
         returns the source, target sentences, and a randomly chosen exemplar
         after trimming them according to the maximum allowed length
         """
-        
+
         def trim_tensor(data, max_len: int, prepend=None, append=None) -> torch.Tensor:
             num_extra = int(prepend is not None) + int(append is not None)
             trunc = torch.zeros(max_len + num_extra, dtype=torch.long)
             length = min(len(data), max_len)
-            
+
             start = int(prepend is not None)
-            trunc[start: start + length] = torch.tensor(data[0: length])
-            
+            trunc[start : start + length] = torch.tensor(data[0:length])
+
             if prepend is not None:
                 trunc[0] = prepend
             if append is not None:
                 trunc[start + length] = append
-            
+
             return trunc
 
         # seq2seq data_quora format
@@ -92,11 +98,13 @@ class OurDataset(Dataset):
         return src, content_trg, trg, trg_input, bert_src, bert_trg, bert_exmp
 
 
-def get_dataloaders(dataroot: str, max_len: int, batch_size: int):
+def get_dataloaders(
+    dataroot: str, max_len: int, batch_size: int
+) -> tuple[DataLoader, DataLoader, DataLoader]:
     train = OurDataset(dataroot, max_len, "train")
     val = OurDataset(dataroot, max_len, "valid")
     test = OurDataset(dataroot, max_len, "test")
-    
+
     train_dl = DataLoader(train, batch_size=batch_size, shuffle=False)
     val_dl = DataLoader(val, batch_size=batch_size, shuffle=False)
     test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
@@ -134,12 +142,9 @@ if __name__ == "__main__":
     #     count += 1
     #     print(count, end="\t")
     #     print([d.shape for d in data])
-    
+
     # print("*" * 10 )
-    
+
     entry = train_dl.dataset[0]
     for t in entry:
         print(t.shape, t)
-    
-            
-    

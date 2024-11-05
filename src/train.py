@@ -60,7 +60,6 @@ def main(config_file: str):
         config.dataset_dir,
         config.training.max_sent_len,
         config.training.batch_size,
-        device,
     )
 
     seq2seq_model_type = (
