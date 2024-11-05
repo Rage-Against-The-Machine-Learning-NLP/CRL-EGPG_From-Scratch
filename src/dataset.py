@@ -57,7 +57,15 @@ class OurDataset(Dataset):
     def __len__(self) -> int:
         return len(self.src)
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> tuple[
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+    ]:
         """
         returns the source, target sentences, and a randomly chosen exemplar
         after trimming them according to the maximum allowed length
@@ -79,21 +87,23 @@ class OurDataset(Dataset):
             return trunc
 
         # seq2seq data_quora format
-        src_sent = self.src[idx]
-        trg_sent = self.trg[idx]
+        src_sent: list = self.src[idx]
+        trg_sent: list = self.trg[idx]
 
-        src = trim_tensor(src_sent, self.max_len)
-        content_trg = trim_tensor(trg_sent, self.max_len)
-        trg = trim_tensor(trg_sent, self.max_len, append=self.eos_idx)
-        trg_input = trim_tensor(trg_sent, self.max_len, prepend=self.sos_idx)
+        src: torch.Tensor = trim_tensor(src_sent, self.max_len)
+        content_trg: torch.Tensor = trim_tensor(trg_sent, self.max_len)
+        trg: torch.Tensor = trim_tensor(trg_sent, self.max_len, append=self.eos_idx)
+        trg_input: torch.Tensor = trim_tensor(
+            trg_sent, self.max_len, prepend=self.sos_idx
+        )
 
         # bert data_quora format
-        bert_in = self.src_bert_ids[idx]
-        bert_out = self.trg_bert_ids[idx]
-        exmp = self.trg_bert_ids[random.choice(self.similarity[idx])]
-        bert_src = trim_tensor(bert_in, self.max_len + 2)
-        bert_trg = trim_tensor(bert_out, self.max_len + 2)
-        bert_exmp = trim_tensor(exmp, self.max_len + 2)
+        bert_in: list = self.src_bert_ids[idx]
+        bert_out: list = self.trg_bert_ids[idx]
+        exmp: list = self.trg_bert_ids[random.choice(self.similarity[idx])]
+        bert_src: torch.Tensor = trim_tensor(bert_in, self.max_len + 2)
+        bert_trg: torch.Tensor = trim_tensor(bert_out, self.max_len + 2)
+        bert_exmp: torch.Tensor = trim_tensor(exmp, self.max_len + 2)
 
         return src, content_trg, trg, trg_input, bert_src, bert_trg, bert_exmp
 
