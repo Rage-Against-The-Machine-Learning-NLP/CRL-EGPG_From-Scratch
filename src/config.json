@@ -4,7 +4,6 @@
   "vocab_file": "quora/processed/word_to_index.pkl",
   "embedding_dim": 300,
   "vocabulary_dim": 23922,
-  "learning_rate": 0.0001,
   "encoder": {
     "hidden_dim": 512,
     "input_dim": 300,
@@ -22,5 +21,14 @@
   "style_attn": {
     "style_in": 768,
     "style_out": 300
+  },
+  "training": {
+    "save_freq": 15,
+    "batch_size": 128,
+    "num_epochs": 45,
+    "learning_rate": 0.0001,
+    "max_sent_len": 15,
+    "dataset_dir": "../data/quora/processed/",
+    "model_save_dir": "../models/saved/"
   }
 }

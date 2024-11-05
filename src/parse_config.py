@@ -13,6 +13,7 @@ class EncoderConfig:
     final_out_dim: int
     drop_out: int
 
+
 @dataclass
 class DecoderConfig:
     hidden_dim: int
@@ -20,10 +21,23 @@ class DecoderConfig:
     num_layers: int
     drop_out: int
 
+
 @dataclass
 class StyleAttentionConfig:
     style_in: int
     style_out: int
+
+
+@dataclass
+class TrainingConfig:
+    save_freq: int
+    batch_size: int
+    num_epochs: int
+    learning_rate: float
+    max_sent_len: int
+    dataset_dir: str
+    model_save_dir: str
+
 
 @dataclass
 class ModelConfig:
@@ -32,34 +46,40 @@ class ModelConfig:
     vocab_file: str
     embedding_dim: int
     vocabulary_dim: int
-    learning_rate: str
     encoder: EncoderConfig
     decoder: DecoderConfig
     style_attn: StyleAttentionConfig
+    training: TrainingConfig
 
 
 def load_config_from_json(file_path: str) -> ModelConfig:
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         data = json.load(f)
-        
+
     # Convert nested dictionaries into dataclass instances
-    encoder_config = EncoderConfig(**data['encoder'])
-    decoder_config = DecoderConfig(**data['decoder'])
-    style_attn_config = StyleAttentionConfig(**data['style_attn'])
-    
+    encoder_config = EncoderConfig(**data["encoder"])
+    decoder_config = DecoderConfig(**data["decoder"])
+    style_attn_config = StyleAttentionConfig(**data["style_attn"])
+    training_config = TrainingConfig(**data["training"])
+
     # Create the main ModelConfig instance
     model_config = ModelConfig(
-        model_name = data['model_name'],
-        glove_file = resolve_relpath(data['glove_file']), # TODO: check path correctness where called
-        vocab_file = resolve_relpath(data['vocab_file']), # TODO: check path correctness where called
-        embedding_dim = data['embedding_dim'],
-        vocabulary_dim = data['vocabulary_dim'],
-        learning_rate = data["learning_rate"],
-        encoder = encoder_config,
-        decoder = decoder_config,
-        style_attn = style_attn_config
+        model_name=data["model_name"],
+        glove_file=resolve_relpath(
+            data["glove_file"]
+        ),  # TODO: check path correctness where called
+        vocab_file=resolve_relpath(
+            data["vocab_file"]
+        ),  # TODO: check path correctness where called
+        embedding_dim=data["embedding_dim"],
+        vocabulary_dim=data["vocabulary_dim"],
+        learning_rate=data["learning_rate"],
+        encoder=encoder_config,
+        decoder=decoder_config,
+        style_attn=style_attn_config,
+        training=training_config,
     )
-    
+
     return model_config
 
 

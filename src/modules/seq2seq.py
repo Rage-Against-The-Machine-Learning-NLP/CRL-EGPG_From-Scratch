@@ -48,9 +48,6 @@ class Seq2Seq(nn.Module):
             device=self.device,
         )
 
-        self.params = list(filter(lambda x: x.requires_grad, self.parameters()))
-        self.opttimizer = torch.optim.Adam(params=self.params, lr=config.learning_rate)
-
     def forward(
         self,
         seq_arr: torch.Tensor,
