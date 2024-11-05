@@ -1,6 +1,6 @@
 {
   "model_name": "Seq2Seq",
-  "glove_file": "./glove/glove.6B.300d.txt",
+  "glove_file": "../glove/glove.6B.300d.txt",
   "dataset_dir": "../data/quora/processed/",
   "vocab_file": "word_to_index.pkl",
   "embedding_dim": 300,

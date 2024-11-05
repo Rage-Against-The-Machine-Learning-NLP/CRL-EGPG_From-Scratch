@@ -77,7 +77,7 @@ def load_config_from_json(file_path: str) -> ModelConfig:
         model_name=data["model_name"],
         glove_file=resolve_relpath(
             data["glove_file"]
-        ),  # TODO: check path correctness where called
+        ),
         dataset_dir=resolve_relpath(data["dataset_dir"]),
         vocab_file=resolve_relpath(
             os.path.join(data["dataset_dir"], data["vocab_file"])
