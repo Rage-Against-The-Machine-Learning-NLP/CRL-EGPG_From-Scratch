@@ -29,6 +29,8 @@
     "learning_rate": 0.0001,
     "max_sent_len": 15,
     "dataset_dir": "../data/quora/processed/",
-    "model_save_dir": "../models/saved/"
+    "model_save_dir": "../models/saved/",
+    "seq2seq_model_type": "gru",
+    "style_extractor_model_type": "bert"
   }
 }

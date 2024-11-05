@@ -37,6 +37,8 @@ class TrainingConfig:
     max_sent_len: int
     dataset_dir: str
     model_save_dir: str
+    seq2seq_model_type: str
+    style_extractor_model_type: str
 
 
 @dataclass
@@ -50,7 +52,6 @@ class ModelConfig:
     decoder: DecoderConfig
     style_attn: StyleAttentionConfig
     training: TrainingConfig
-
 
 def load_config_from_json(file_path: str) -> ModelConfig:
     with open(file_path, "r") as f:
