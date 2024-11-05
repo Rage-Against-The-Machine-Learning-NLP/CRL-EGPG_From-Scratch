@@ -1,2 +1,4 @@
 **/__pycache__/
-glove/
+glove/*
+
+!**/.gitkeep
