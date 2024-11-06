@@ -17,8 +17,10 @@ def get_nll_loss(
     fc_out = F.log_softmax(fc_out, dim=-1)
     label: torch.Tensor = (fc_label > 0).float()
 
+    return_val: torch.Tensor # cheap hack for neatness
+
     if fc_label.ndim == 1:
-        return label * F.nll_loss(input=fc_out, target=fc_label, reduction=reduction)
+        return_val = label * F.nll_loss(input=fc_out, target=fc_label, reduction=reduction)
     elif fc_label.ndim == 2:
         loss = (
             label
@@ -27,8 +29,11 @@ def get_nll_loss(
             )
         ).sum(dim=-1) / (label.sum(dim=-1) + min_num)
 
-        return loss.mean() if reduction == "mean" else loss
-    return None  # TODO: or raise error?
+        return_val = loss.mean() if reduction == "mean" else loss
+    else:
+        raise ValueError(f"Expected one or two number of dims for `fc_label`, got {fc_label.ndim}")
+
+    return return_val
 
 
 class UnsupervisedContrastiveLoss(nn.Module):

@@ -2,9 +2,10 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.optim import Adam
+from torch.optim.adam import Adam
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from torch.optim.optimizer import Optimizer
 
 import src.utils as utils
 from src.parse_config import load_config_from_json, ModelConfig
@@ -21,7 +22,7 @@ def train_model(
     lambda_2: float,
     seq2seq: Seq2Seq,
     style_extractor: StyleExtractor,
-    optimizer: torch.optim.Optimizer,
+    optimizer: Optimizer,
     train_dl: DataLoader,
     val_dl: DataLoader,
     model_save_dir: str,

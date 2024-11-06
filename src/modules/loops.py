@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from torch.optim.optimizer import Optimizer
 from tqdm import tqdm
 
 from src.modules.seq2seq import Seq2Seq
@@ -15,7 +16,7 @@ def train_loop(
     lambda_2: float,
     seq2seq: Seq2Seq,
     style_extractor: StyleExtractor,
-    optimizer: torch.optim.Optimizer,
+    optimizer: Optimizer,
     train_dl: DataLoader,
     device: torch.device = torch.device(device="cpu"),
 ) -> list[float]:

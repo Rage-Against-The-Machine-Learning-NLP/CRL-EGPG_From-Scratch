@@ -58,7 +58,7 @@ class Seq2Seq(nn.Module):
         seq_arr: torch.Tensor,
         seq_len: torch.Tensor,
         style_emb: torch.Tensor,
-        decoder_input: torch.Tensor = None,
+        decoder_input: torch.Tensor | None = None,
         max_seq_len: int = 16,
     ):
 
