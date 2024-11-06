@@ -124,7 +124,7 @@ def eval_loop(
     eval_dl: DataLoader,
     epoch: int,
     device: torch.device = torch.device(device="cpu"),
-):
+) -> list[float]:
     # Uses only traditional evaluation loss, not contrastive loss (only used for training)
 
     seq2seq.eval()
@@ -194,19 +194,23 @@ def eval_loop(
         ppl = torch.concat(perplexities, dim=0)
 
         # TODO: see if this is a scam or not
+        # returning both masked and unmasked ppls for now
         # filter out perplexity values > 200
         ppl_mask = (ppl < 200).float()  # overloading BS
         # get average of values < 200
         num_filtered = ppl_mask.sum()
         if torch.all(num_filtered == 0.0):
             # 0 anyway, so avg is 0 instead of nan
-            ppl = (ppl * ppl_mask).sum()
+            ppl_masked = (ppl * ppl_mask).sum()
         else:
-            ppl = (ppl * ppl_mask).sum() / num_filtered
+            ppl_masked = (ppl * ppl_mask).sum() / num_filtered
 
-        avg_ppl: float = ppl.cpu().item()
+        avg_ppl_masked: float = ppl_masked.cpu().item()
+        avg_ppl_unmasked: float = ppl.mean().cpu().item()
         avg_nll: float = float(np.mean(nll_losses))
 
-        print(f"Evaluation averages: NLL loss: {avg_nll}, Perplexity: {avg_ppl}")
+        print(
+            f"Evaluation averages: NLL loss: {avg_nll}, Masked Perplexity: {avg_ppl_masked}, Unmasked Perplexity: {avg_ppl_unmasked}"
+        )
 
-    return [avg_nll, avg_ppl]
+    return [avg_nll, avg_ppl_masked, avg_ppl_unmasked]

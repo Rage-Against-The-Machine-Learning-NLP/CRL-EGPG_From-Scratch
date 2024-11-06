@@ -47,7 +47,7 @@ def train_model(
             train_dl,
             device,
         )
-        # averaged nll loss, perplexity
+        # averaged nll loss, masked perplexity, unmasked perplexity
         eval_losses: list[float] = eval_loop(seq2seq, style_extractor, val_dl, epoch)
         train_loss_arr.append(train_losses)
         eval_loss_arr.append(eval_losses)
