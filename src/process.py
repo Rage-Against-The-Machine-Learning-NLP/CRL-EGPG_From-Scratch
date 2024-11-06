@@ -152,9 +152,9 @@ def _get_similar_sents(
             continue
 
         if abs(len(tokens[i]) - len(tokens[j])) > 2:
-            continue
+            continue  # if the sentence lengths are not close enough
         if len(list(set(tokens[i]))) - len(list(set(tokens[i]) & set(tokens[j]))) < 2:
-            continue
+            continue  # if the sentences don't have enough unique words in common
 
         similarity[j] = editdistance.eval(tags[i], tags[j])
 
