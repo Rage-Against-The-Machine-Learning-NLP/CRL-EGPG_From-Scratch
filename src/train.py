@@ -34,7 +34,8 @@ def train_model(
 
     train_loss_arr = []
     eval_loss_arr = []
-
+    seq2seq.to(device)
+    style_extractor.to(device)
     for epoch in range(num_epochs):
         # base, content, style losses
         train_losses: list[float] = train_loop(

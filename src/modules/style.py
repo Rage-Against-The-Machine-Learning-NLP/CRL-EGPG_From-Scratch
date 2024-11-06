@@ -4,7 +4,7 @@ from transformers import BertModel, AlbertModel, RobertaModel
 
 
 class StyleExtractor(nn.Module):
-   def __init__(self, model_type='bert'):
+   def __init__(self, model_type='bert', device=torch.device(device="cpu")):
        """
        model_type: one of 'bert', 'albert', 'roberta'
        """
@@ -20,9 +20,11 @@ class StyleExtractor(nn.Module):
            raise ValueError("model_type must be one of: bert, albert, roberta")
 
        self.model_type = model_type
+       self.model.to(device)
 
    def forward(self, input):
-       attention_mask = (input != 0).float()
+       device = next(self.model.parameters()).device
+       attention_mask = (input != 0).float().to(device)
        outputs = self.model(input, attention_mask=attention_mask)
        # Stack hidden states - note that for ALBERT architecture,
        # all layers share parameters so hidden states may be less meaningful
