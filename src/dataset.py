@@ -93,9 +93,9 @@ class OurDataset(Dataset):
         trg_sent: list = self.trg[idx]
 
         src: torch.Tensor = trim_tensor(src_sent, self.max_len)
-        src_len = torch.Tensor(src.size(0))
+        src_len = torch.tensor(src.size(0))
         content_trg: torch.Tensor = trim_tensor(trg_sent, self.max_len)
-        content_len = torch.Tensor(content_trg.size(0))
+        content_len = torch.tensor(content_trg.size(0))
         trg: torch.Tensor = trim_tensor(trg_sent, self.max_len, append=self.eos_idx)
         trg_input: torch.Tensor = trim_tensor(
             trg_sent, self.max_len, prepend=self.sos_idx

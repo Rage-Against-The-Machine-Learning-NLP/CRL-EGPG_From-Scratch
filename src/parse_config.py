@@ -77,6 +77,8 @@ def load_config_from_json(file_path: str) -> ModelConfig:
         os.path.join(data["results_dir"], training_config.validation_losses_file)
     )
 
+    encoder_config.bidirectional = bool(encoder_config.bidirectional)
+
     # Create the main ModelConfig instance
     model_config = ModelConfig(
         model_name=data["model_name"],

@@ -69,6 +69,7 @@ def train_model(
 def main(config_file: str):
     config: ModelConfig = load_config_from_json(config_file)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
 
     train_dl, val_dl, _ = get_dataloaders(
         config.dataset_dir,
