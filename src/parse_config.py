@@ -39,8 +39,8 @@ class TrainingConfig:
     learning_rate: float
     seq2seq_model_type: str
     style_extractor_model_type: str
-    loss_file: str
-    perplexity_file: str
+    train_losses_file: str
+    validation_losses_file: str
 
 
 @dataclass
@@ -70,11 +70,11 @@ def load_config_from_json(file_path: str) -> ModelConfig:
     training_config = TrainingConfig(**data["training"])
 
     # resolve paths
-    training_config.loss_file = resolve_relpath(
-        os.path.join(data["results_dir"], training_config.loss_file)
+    training_config.train_losses_file = resolve_relpath(
+        os.path.join(data["results_dir"], training_config.train_losses_file)
     )
-    training_config.perplexity_file = resolve_relpath(
-        os.path.join(data["results_dir"], training_config.perplexity_file)
+    training_config.validation_losses_file = resolve_relpath(
+        os.path.join(data["results_dir"], training_config.validation_losses_file)
     )
 
     # Create the main ModelConfig instance

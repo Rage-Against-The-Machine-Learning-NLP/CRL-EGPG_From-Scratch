@@ -26,18 +26,18 @@ def train_model(
     train_dl: DataLoader,
     val_dl: DataLoader,
     model_save_dir: str,
-    loss_file: str,
-    perplexity_file: str,
+    train_losses_file: str,
+    validation_losses_file: str,
     device: torch.device = torch.device(device="cpu"),
 ):
     """Trains the model and saves losses for all epochs in the given files"""
 
-    loss_arr = []
-    ppl_arr = []
+    train_loss_arr = []
+    eval_loss_arr = []
 
     for epoch in range(num_epochs):
         # base, content, style losses
-        losses: list[float] = train_loop(
+        train_losses: list[float] = train_loop(
             epoch,
             lambda_1,
             lambda_2,
@@ -48,9 +48,9 @@ def train_model(
             device,
         )
         # averaged nll loss, perplexity
-        ppl: list[float] = eval_loop(seq2seq, style_extractor, val_dl, epoch)
-        loss_arr.append(losses)
-        ppl_arr.append(ppl)
+        eval_losses: list[float] = eval_loop(seq2seq, style_extractor, val_dl, epoch)
+        train_loss_arr.append(train_losses)
+        eval_loss_arr.append(eval_losses)
 
     # save last epoch's model only
     torch.save(
@@ -62,15 +62,15 @@ def train_model(
         os.path.join(model_save_dir, "style_extractor.pkl"),
     )
 
-    utils.pkl_dump(loss_arr, loss_file)
-    utils.pkl_dump(ppl_arr, perplexity_file)
+    utils.pkl_dump(train_loss_arr, train_losses_file)
+    utils.pkl_dump(eval_loss_arr, validation_losses_file)
 
 
 def main(config_file: str):
     config: ModelConfig = load_config_from_json(config_file)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_dl, val_dl, test_dl = get_dataloaders(
+    train_dl, val_dl, _ = get_dataloaders(
         config.dataset_dir,
         config.training.max_sent_len,
         config.training.batch_size,
@@ -104,8 +104,8 @@ def main(config_file: str):
         train_dl,
         val_dl,
         config.model_save_dir,
-        config.training.loss_file,
-        config.training.perplexity_file,
+        config.training.train_losses_file,
+        config.training.validation_losses_file,
         device,
     )
 

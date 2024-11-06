@@ -191,10 +191,10 @@ def eval_loop(
             perplexities.append(perplexity)
             nll_losses.append(nll_loss.cpu().item())
 
-        # filter perplexities
         ppl = torch.cat(perplexities, dim=0)
-        ppl_mask = (ppl < 200).float()
-        # and take average
+        # filter out perplexity values > 200
+        ppl_mask = (ppl < 200).float()  # overloading BS
+        # get average of values < 200
         ppl = (ppl * ppl_mask).sum() / ppl_mask.sum()
 
         avg_ppl: float = ppl.cpu().item()
