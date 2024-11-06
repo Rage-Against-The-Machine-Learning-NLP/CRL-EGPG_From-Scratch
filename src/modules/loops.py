@@ -29,11 +29,22 @@ def train_loop(
     content_losses = []
     style_losses = []
 
-    for src, content_trg, trg, trg_input, bert_src, bert_trg, bert_exmp in tqdm(
-        train_dl, desc=f"Training epoch {epoch}"
-    ):
+    for (
+        src,
+        src_len,
+        content_trg,
+        content_len,
+        trg,
+        trg_input,
+        bert_src,
+        bert_trg,
+        bert_exmp,
+    ) in tqdm(train_dl, desc=f"Training epoch {epoch}"):
+
         src: torch.Tensor
+        src_len: torch.Tensor
         content_trg: torch.Tensor
+        content_len: torch.Tensor
         trg: torch.Tensor
         trg_input: torch.Tensor
         bert_src: torch.Tensor
@@ -42,9 +53,21 @@ def train_loop(
 
         optimizer.zero_grad()
 
-        src, content_trg, trg, trg_input, bert_src, bert_trg, bert_exmp = (
+        (
+            src,
+            src_len,
+            content_trg,
+            content_len,
+            trg,
+            trg_input,
+            bert_src,
+            bert_trg,
+            bert_exmp,
+        ) = (
             src.to(device),
+            src_len.to(device),
             content_trg.to(device),
+            content_len.to(device),
             trg.to(device),
             trg_input.to(device),
             bert_src.to(device),
@@ -56,13 +79,13 @@ def train_loop(
         trg_style_emb: torch.Tensor = style_extractor(bert_trg)
         exmp_style_emb: torch.Tensor = style_extractor(bert_exmp)
         predicted_trg, src_hidden = seq2seq.forward(
-            src, src.size()[0], exmp_style_emb, decoder_input=trg_input
+            src, src_len, exmp_style_emb, decoder_input=trg_input
         )
         pred_trg_loss: torch.Tensor = get_nll_loss(predicted_trg, trg, reduction="mean")
 
         # content contrast calculation
         content_trg_emb = seq2seq.emb_layer(content_trg)
-        _, trg_hidden = seq2seq.encoder_layer(content_trg_emb, content_trg.size()[0])
+        _, trg_hidden = seq2seq.encoder_layer(content_trg_emb, content_len)
         content_src = torch.unsqueeze(F.normalize(src_hidden, dim=1), 1)
         content_trg = torch.unsqueeze(F.normalize(trg_hidden, dim=1), 1)
         content_contrast: torch.Tensor = torch.concat((content_src, content_trg), dim=1)
@@ -85,9 +108,9 @@ def train_loop(
         content_losses.append(content_loss.cpu().item())
         style_losses.append(style_loss.cpu().item())
 
-    avg_base_loss: float = np.mean(base_losses)
-    avg_content_loss: float = np.mean(content_losses)
-    avg_style_loss: float = np.mean(style_losses)
+    avg_base_loss: float = float(np.mean(base_losses))
+    avg_content_loss: float = float(np.mean(content_losses))
+    avg_style_loss: float = float(np.mean(style_losses))
     print(
         f"Epoch {epoch} losses: base: {avg_base_loss}, content: {avg_content_loss}, style: {avg_style_loss}"
     )

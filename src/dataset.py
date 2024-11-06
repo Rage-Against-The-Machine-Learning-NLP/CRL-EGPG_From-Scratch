@@ -65,6 +65,8 @@ class OurDataset(Dataset):
         torch.Tensor,
         torch.Tensor,
         torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
     ]:
         """
         returns the source, target sentences, and a randomly chosen exemplar
@@ -91,7 +93,9 @@ class OurDataset(Dataset):
         trg_sent: list = self.trg[idx]
 
         src: torch.Tensor = trim_tensor(src_sent, self.max_len)
+        src_len = torch.Tensor(src.size(0))
         content_trg: torch.Tensor = trim_tensor(trg_sent, self.max_len)
+        content_len = torch.Tensor(content_trg.size(0))
         trg: torch.Tensor = trim_tensor(trg_sent, self.max_len, append=self.eos_idx)
         trg_input: torch.Tensor = trim_tensor(
             trg_sent, self.max_len, prepend=self.sos_idx
@@ -105,7 +109,7 @@ class OurDataset(Dataset):
         bert_trg: torch.Tensor = trim_tensor(bert_out, self.max_len + 2)
         bert_exmp: torch.Tensor = trim_tensor(exmp, self.max_len + 2)
 
-        return src, content_trg, trg, trg_input, bert_src, bert_trg, bert_exmp
+        return src, src_len, content_trg, content_len, trg, trg_input, bert_src, bert_trg, bert_exmp
 
 
 def get_dataloaders(
