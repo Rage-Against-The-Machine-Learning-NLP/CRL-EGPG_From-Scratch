@@ -60,7 +60,7 @@ class Seq2Seq(nn.Module):
         style_emb: torch.Tensor,
         decoder_input: torch.Tensor | None = None,
         max_seq_len: int = 16,
-    ):
+    ) -> tuple[torch.Tensor, torch.Tensor]:
 
         seq_arr = seq_arr.to(self.device)
         seq_len = seq_len.to(self.device)
@@ -71,7 +71,7 @@ class Seq2Seq(nn.Module):
         encoder_mask = (seq_arr == 0).byte()
         seq_arr = self.emb_layer(seq_arr)
         encoder_output, encoder_hidden = self.encoder_layer(seq_arr, seq_len)
-        output = self.decoder(
+        output: torch.Tensor = self.decoder(
             encoder_hidden,
             encoder_output,
             encoder_mask,

@@ -123,5 +123,83 @@ def eval_loop(
     style_extractor: StyleExtractor,
     eval_dl: DataLoader,
     epoch: int,
+    device: torch.device = torch.device(device="cpu"),
 ):
-    pass
+    # Uses only traditional evaluation loss, not contrastive loss (only used for training)
+
+    seq2seq.eval()
+    seq2seq.set_decoder_mode("eval")
+    style_extractor.eval()
+
+    perplexities = []
+    nll_losses = []
+
+    with torch.no_grad():
+        for (
+            src,
+            src_len,
+            content_trg,
+            content_len,
+            trg,
+            trg_input,
+            bert_src,
+            bert_trg,
+            bert_exmp,
+        ) in tqdm(eval_dl, desc=f"Evaluating epoch {epoch}"):
+
+            src: torch.Tensor
+            src_len: torch.Tensor
+            content_trg: torch.Tensor
+            content_len: torch.Tensor
+            trg: torch.Tensor
+            trg_input: torch.Tensor
+            bert_src: torch.Tensor
+            bert_trg: torch.Tensor
+            bert_exmp: torch.Tensor
+
+            (
+                src,
+                src_len,
+                content_trg,
+                content_len,
+                trg,
+                trg_input,
+                bert_src,
+                bert_trg,
+                bert_exmp,
+            ) = (
+                src.to(device),
+                src_len.to(device),
+                content_trg.to(device),
+                content_len.to(device),
+                trg.to(device),
+                trg_input.to(device),
+                bert_src.to(device),
+                bert_trg.to(device),
+                bert_exmp.to(device),
+            )
+
+            exmp_style_emb = style_extractor(bert_exmp)
+            predicted_trg, _ = seq2seq.forward(
+                src, src_len, exmp_style_emb, decoder_input=trg_input
+            )
+
+            pred_trg_loss: torch.Tensor = get_nll_loss(
+                predicted_trg, trg, reduction="none"
+            )
+            perplexity, nll_loss = pred_trg_loss.exp(), pred_trg_loss.mean()
+            perplexities.append(perplexity)
+            nll_losses.append(nll_loss.cpu().item())
+
+        # filter perplexities
+        ppl = torch.cat(perplexities, dim=0)
+        ppl_mask = (ppl < 200).float()
+        # and take average
+        ppl = (ppl * ppl_mask).sum() / ppl_mask.sum()
+
+        avg_ppl: float = ppl.cpu().item()
+        avg_nll: float = float(np.mean(nll_losses))
+
+        print(f"Evaluation averages: NLL loss: {avg_nll}, Perplexity: {avg_ppl}")
+
+    return [avg_nll, avg_ppl]

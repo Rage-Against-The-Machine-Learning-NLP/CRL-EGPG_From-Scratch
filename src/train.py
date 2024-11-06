@@ -37,7 +37,7 @@ def train_model(
 
     for epoch in range(num_epochs):
         # base, content, style losses
-        loss = train_loop(
+        losses: list[float] = train_loop(
             epoch,
             lambda_1,
             lambda_2,
@@ -47,8 +47,9 @@ def train_model(
             train_dl,
             device,
         )
-        ppl = eval_loop(seq2seq, style_extractor, val_dl, epoch)
-        loss_arr.append(loss)
+        # averaged nll loss, perplexity
+        ppl: list[float] = eval_loop(seq2seq, style_extractor, val_dl, epoch)
+        loss_arr.append(losses)
         ppl_arr.append(ppl)
 
     # save last epoch's model only
