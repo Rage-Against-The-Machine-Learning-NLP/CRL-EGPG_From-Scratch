@@ -51,7 +51,7 @@ class Seq2SeqEncoder(nn.Module):
         # NOTE: https://discuss.pytorch.org/t/why-lengths-should-be-given-in-sorted-order-in-pack-padded-sequence/3540/8
 
         padded_input = pack_padded_sequence(
-            input=seq_arr, lengths=seq_len, batch_first=True, enforce_sorted=False
+            input=seq_arr, lengths=seq_len.cpu(), batch_first=True, enforce_sorted=False
         )
 
         # todo: will this still work if num_layers > 1? original configs only have n_l==1
