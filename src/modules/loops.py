@@ -191,11 +191,18 @@ def eval_loop(
             perplexities.append(perplexity)
             nll_losses.append(nll_loss.cpu().item())
 
-        ppl = torch.cat(perplexities, dim=0)
+        ppl = torch.concat(perplexities, dim=0)
+
+        # TODO: see if this is a scam or not
         # filter out perplexity values > 200
         ppl_mask = (ppl < 200).float()  # overloading BS
         # get average of values < 200
-        ppl = (ppl * ppl_mask).sum() / ppl_mask.sum()
+        num_filtered = ppl_mask.sum()
+        if torch.all(num_filtered == 0.0):
+            # 0 anyway, so avg is 0 instead of nan
+            ppl = (ppl * ppl_mask).sum()
+        else:
+            ppl = (ppl * ppl_mask).sum() / num_filtered
 
         avg_ppl: float = ppl.cpu().item()
         avg_nll: float = float(np.mean(nll_losses))
