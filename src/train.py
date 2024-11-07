@@ -1,9 +1,7 @@
 import os
-import numpy as np
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch.optim.optimizer import Optimizer
 
@@ -72,7 +70,10 @@ def train_model(
 def main(config_file: str):
     config: ModelConfig = load_config_from_json(config_file)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
+    print(f"using device: {device}")
+    print(f"learning rage: {config.training.learning_rate}")
+    print(f"lambda1: {config.training.lambda_1}")
+    print(f"lambda2: {config.training.lambda_2}")
 
     train_dl, val_dl, _ = get_dataloaders(
         config.dataset_dir,

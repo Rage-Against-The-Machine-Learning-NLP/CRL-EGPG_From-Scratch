@@ -1,6 +1,5 @@
 import os
 
-import json
 from tqdm import tqdm
 import torch
 from torch.utils.data import DataLoader
