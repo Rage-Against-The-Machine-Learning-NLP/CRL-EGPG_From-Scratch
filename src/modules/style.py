@@ -27,8 +27,6 @@ class StyleExtractor(nn.Module):
 
         self.model_type = model_type
 
-    #    self.model.to(device)
-
     def forward(self, input):
         device = next(self.model.parameters()).device
         attention_mask = (input != 0).float().to(device)
