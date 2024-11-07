@@ -12,12 +12,14 @@ from src.parse_config import ModelConfig, load_config_from_json
 from src.utils import Specials, get_bert_tokenizer, pkl_load, resolve_relpath
 
 
-def evaluate(config: ModelConfig) -> None:
-    test_set = OurDataset(config.dataset_dir, 15, "test")
-    test_loader = DataLoader(test_set, batch_size=1, shuffle=False)
+def _get_test_loader(dataroot: str, max_len: int = 15) -> DataLoader:
+    test_set = OurDataset(dataroot, max_len, "test")
+    return DataLoader(test_set, batch_size=1, shuffle=False)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+def _get_trained_models(
+    config: ModelConfig, device: torch.device
+) -> tuple[Seq2Seq, StyleExtractor]:
     seq2seq = Seq2Seq(config, device=device).to(device)
     seq2seq.load_state_dict(
         torch.load(
@@ -26,6 +28,7 @@ def evaluate(config: ModelConfig) -> None:
         )
     )
     seq2seq.eval()
+    seq2seq.decoder.set_mode("infer")
 
     style_extractor = StyleExtractor().to(device)
     style_extractor.load_state_dict(
@@ -36,7 +39,14 @@ def evaluate(config: ModelConfig) -> None:
     )
     style_extractor.eval()
 
-    seq2seq.decoder.set_mode("infer")
+    return seq2seq, style_extractor
+
+
+def evaluate(config: ModelConfig) -> None:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    test_loader = _get_test_loader(config.dataset_dir)
+    seq2seq, style_extractor = _get_trained_models(config, device)
 
     sim = pkl_load(os.path.join(config.dataset_dir, "test_similarity.pkl"))
     idx2word = pkl_load(os.path.join(config.dataset_dir, "index_to_word.pkl"))
@@ -50,44 +60,26 @@ def evaluate(config: ModelConfig) -> None:
         for idx, (
             src,
             src_len,
-            content_trg,
-            content_len,
-            trg,
+            _content_trg,
+            _content_len,
+            _trg,
             trg_input,
-            bert_src,
-            bert_trg,
-            bert_exmp,
+            _bert_src,
+            _bert_trg,
+            _bert_exmp,
         ) in enumerate(tqdm(test_loader, desc=f"testing model")):
             src: torch.Tensor
             src_len: torch.Tensor
-            content_trg: torch.Tensor
-            content_len: torch.Tensor
-            trg: torch.Tensor
             trg_input: torch.Tensor
-            bert_src: torch.Tensor
-            bert_trg: torch.Tensor
-            bert_exmp: torch.Tensor
 
             (
                 src,
                 src_len,
-                content_trg,
-                content_len,
-                trg,
                 trg_input,
-                bert_src,
-                bert_trg,
-                bert_exmp,
             ) = (
                 src.to(device),
                 src_len.to(device),
-                content_trg.to(device),
-                content_len.to(device),
-                trg.to(device),
                 trg_input.to(device),
-                bert_src.to(device),
-                bert_trg.to(device),
-                bert_exmp.to(device),
             )
 
             predicted_targets = []
@@ -98,8 +90,9 @@ def evaluate(config: ModelConfig) -> None:
                 bert_sim_sent = torch.zeros(
                     config.training.max_sent_len + 2, dtype=torch.long
                 )
-                bert_sim_sent[:SENT_LEN] = torch.tensor(bert_sent_opt[:SENT_LEN])
-                bert_sim_sent = bert_sim_sent.unsqueeze(0).to(device)
+                bert_sim_sent[:SENT_LEN] = (
+                    torch.tensor(bert_sent_opt[:SENT_LEN]).unsqueeze(0).to(device)
+                )
 
                 style_embedding = style_extractor(bert_sim_sent)
                 predicted_trg, _ = seq2seq.forward(
