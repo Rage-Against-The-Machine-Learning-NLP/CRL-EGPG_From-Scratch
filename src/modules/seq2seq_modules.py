@@ -131,7 +131,7 @@ class Seq2SeqDecoder(nn.Module):
         encoder_hidden = torch.concat([encoder_hidden, style_feature], dim=-1)
         hidden: torch.Tensor = self.W_enc2dec(encoder_hidden).unsqueeze(0)
 
-        return_val: torch.Tensor # cheap hack for neatness
+        return_val: torch.Tensor  # cheap hack for neatness
 
         if self.mode in ["train", "eval"]:
             decoder_input_emb = self.word_emb_layer(decoder_input)
@@ -181,5 +181,5 @@ class Seq2SeqDecoder(nn.Module):
 
             decoded_ids = torch.stack(id_arr, dim=1)
             return_val = decoded_ids
-        
+
         return return_val

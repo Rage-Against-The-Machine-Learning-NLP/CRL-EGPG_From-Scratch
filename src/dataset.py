@@ -109,7 +109,17 @@ class OurDataset(Dataset):
         bert_trg: torch.Tensor = trim_tensor(bert_out, self.max_len + 2)
         bert_exmp: torch.Tensor = trim_tensor(exmp, self.max_len + 2)
 
-        return src, src_len, content_trg, content_len, trg, trg_input, bert_src, bert_trg, bert_exmp
+        return (
+            src,
+            src_len,
+            content_trg,
+            content_len,
+            trg,
+            trg_input,
+            bert_src,
+            bert_trg,
+            bert_exmp,
+        )
 
 
 def get_dataloaders(
