@@ -89,9 +89,8 @@ def evaluate(config: ModelConfig) -> None:
                 bert_sim_sent = torch.zeros(
                     config.training.max_sent_len + 2, dtype=torch.long
                 )
-                bert_sim_sent[:SENT_LEN] = (
-                    torch.tensor(bert_sent_opt[:SENT_LEN]).unsqueeze(0).to(device)
-                )
+                bert_sim_sent[:SENT_LEN] = torch.tensor(bert_sent_opt[:SENT_LEN])
+                bert_sim_sent = bert_sim_sent.unsqueeze(0).to(device)
 
                 style_embedding = style_extractor(bert_sim_sent)
                 predicted_trg, _ = seq2seq.forward(
