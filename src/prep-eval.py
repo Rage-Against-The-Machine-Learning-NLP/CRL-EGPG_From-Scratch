@@ -24,6 +24,7 @@ def _get_trained_models(
         torch.load(
             os.path.join(config.model_save_dir, "seq2seq.pkl"),
             weights_only=True,
+            map_location=device,
         )
     )
     seq2seq.eval()
@@ -34,6 +35,7 @@ def _get_trained_models(
         torch.load(
             os.path.join(config.model_save_dir, "style_extractor.pkl"),
             weights_only=True,
+            map_location=device,
         )
     )
     style_extractor.eval()
