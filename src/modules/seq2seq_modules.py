@@ -73,6 +73,7 @@ class Seq2SeqDecoder(nn.Module):
         vocabulary_dim: int = 1,
         num_layers: int = 1,
         drop_out: float = 0.2,
+        bidirectional: bool = False,
         input_dim: int = 256,
         hidden_dim: int = 256,
         device: torch.device = torch.device(device="cpu"),
@@ -98,7 +99,7 @@ class Seq2SeqDecoder(nn.Module):
             "bias": True,
             "batch_first": True,
             "dropout": 0 if num_layers == 1 else drop_out,
-            "bidirectional": False,
+            "bidirectional": bidirectional,
             "device": device,
         }
         match model_type:
