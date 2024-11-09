@@ -57,7 +57,14 @@ class Seq2SeqEncoder(nn.Module):
         # todo: will this still work if num_layers > 1? original configs only have n_l==1
         output, hidden = self.model(padded_input)
         output, _ = pad_packed_sequence(sequence=output, batch_first=True)
-        hidden = torch.cat(tensors=tuple(hidden), dim=-1)
+
+        # Handle GRU and LSTM hidden state consistency
+        if isinstance(hidden, tuple):  # LSTM case
+            hidden = torch.cat(
+                tensors=hidden, dim=-1
+            )  # concatenate hidden and cell states
+        else:  # GRU case
+            hidden = torch.cat(tensors=(hidden,), dim=-1)
 
         return output, hidden
 
