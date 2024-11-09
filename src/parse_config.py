@@ -7,6 +7,7 @@ from .utils import resolve_relpath
 
 @dataclass
 class EncoderConfig:
+    model_type: str
     hidden_dim: int
     input_dim: int
     num_layers: int
@@ -17,10 +18,12 @@ class EncoderConfig:
 
 @dataclass
 class DecoderConfig:
+    model_type: str
     hidden_dim: int
     input_dim: int
     num_layers: int
     drop_out: int
+    bidirectional: bool
 
 
 @dataclass
@@ -37,7 +40,6 @@ class TrainingConfig:
     lambda_1: float
     lambda_2: float
     learning_rate: float
-    seq2seq_model_type: str
     style_extractor_model_type: str
     train_losses_file: str
     validation_losses_file: str
@@ -76,8 +78,6 @@ def load_config_from_json(file_path: str) -> ModelConfig:
     training_config.validation_losses_file = resolve_relpath(
         os.path.join(data["results_dir"], training_config.validation_losses_file)
     )
-
-    encoder_config.bidirectional = bool(encoder_config.bidirectional)
 
     # Create the main ModelConfig instance
     model_config = ModelConfig(

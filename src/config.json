@@ -8,18 +8,21 @@
   "model_save_dir": "../models/",
   "results_dir": "../results/",
   "encoder": {
+    "model_type": "gru",
     "hidden_dim": 512,
     "input_dim": 300,
     "num_layers": 1,
-    "bidirectional": 1,
+    "bidirectional": true,
     "final_out_dim": 1024,
     "drop_out": 0.2
   },
   "decoder": {
+    "model_type": "gru",
     "hidden_dim": 512,
     "input_dim": 1324,
     "num_layers": 1,
-    "drop_out": 0.2
+    "drop_out": 0.2,
+    "bidirectional": false
   },
   "style_attn": {
     "style_in": 768,
@@ -32,7 +35,6 @@
     "lambda_1": 0.1,
     "lambda_2": 0.1,
     "learning_rate": 0.0001,
-    "seq2seq_model_type": "gru",
     "style_extractor_model_type": "bert",
     "train_losses_file": "train_losses.pkl",
     "validation_losses_file": "validation_losses.pkl"

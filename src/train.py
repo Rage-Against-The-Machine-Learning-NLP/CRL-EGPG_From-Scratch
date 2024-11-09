@@ -71,7 +71,9 @@ def main(config_file: str):
     config: ModelConfig = load_config_from_json(config_file)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"using device: {device}")
-    print(f"learning rage: {config.training.learning_rate}")
+    print(f"encoder model type: {config.encoder.model_type}")
+    print(f"decoder model type: {config.decoder.model_type}")
+    print(f"learning rate: {config.training.learning_rate}")
     print(f"lambda1: {config.training.lambda_1}")
     print(f"lambda2: {config.training.lambda_2}")
 
@@ -81,13 +83,18 @@ def main(config_file: str):
         config.training.batch_size,
     )
 
-    seq2seq_model_type = (
+    encoder_model_type = (
         Seq2SeqModelType.GRU
-        if config.training.seq2seq_model_type == "gru"
+        if config.encoder.model_type == "gru"
+        else Seq2SeqModelType.LSTM
+    )
+    decoder_model_type = (
+        Seq2SeqModelType.GRU
+        if config.decoder.model_type == "gru"
         else Seq2SeqModelType.LSTM
     )
 
-    seq2seq = Seq2Seq(config, seq2seq_model_type, device)
+    seq2seq = Seq2Seq(config, encoder_model_type, decoder_model_type, device)
     style_extractor = StyleExtractor(config.training.style_extractor_model_type)
     params: list[nn.parameter.Parameter] = list(seq2seq.parameters()) + list(
         style_extractor.parameters()

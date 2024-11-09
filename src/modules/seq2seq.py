@@ -10,7 +10,8 @@ class Seq2Seq(nn.Module):
     def __init__(
         self,
         config: ModelConfig,
-        model_type: Seq2SeqModelType = Seq2SeqModelType.GRU,
+        encoder_model_type: Seq2SeqModelType = Seq2SeqModelType.GRU,
+        decoder_model_type: Seq2SeqModelType = Seq2SeqModelType.GRU,
         device: torch.device = torch.device(device="cpu"),
     ):
 
@@ -28,7 +29,7 @@ class Seq2Seq(nn.Module):
         self.device = device
 
         self.encoder_layer = Seq2SeqEncoder(
-            model_type=model_type,
+            model_type=encoder_model_type,
             hidden_dim=config.encoder.hidden_dim,
             input_dim=config.encoder.input_dim,
             num_layers=config.encoder.num_layers,
@@ -39,12 +40,13 @@ class Seq2Seq(nn.Module):
         self.decoder = Seq2SeqDecoder(
             word_emb_layer=self.emb_layer,
             style_attention_input_dim=config.style_attn.style_in,
-            model_type=model_type,
+            model_type=decoder_model_type,
             encoder_final_out_dim=config.encoder.final_out_dim,
             decoder_hidden_dim=config.encoder.hidden_dim,  # TODO: why?
             vocabulary_dim=config.vocabulary_dim,
             num_layers=config.decoder.num_layers,
             drop_out=config.decoder.drop_out,
+            bidirectional=config.decoder.bidirectional,
             input_dim=config.decoder.input_dim,
             hidden_dim=config.decoder.hidden_dim,
             device=self.device,
