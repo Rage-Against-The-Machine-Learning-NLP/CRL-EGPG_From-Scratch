@@ -40,6 +40,8 @@ class TrainingConfig:
     lambda_1: float
     lambda_2: float
     learning_rate: float
+    temperature: float
+    base_temperature: float
     style_extractor_model_type: str
     train_losses_file: str
     validation_losses_file: str

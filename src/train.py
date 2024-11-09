@@ -18,6 +18,8 @@ def train_model(
     num_epochs: int,
     lambda_1: float,
     lambda_2: float,
+    temperature: float,
+    base_temperature: float,
     seq2seq: Seq2Seq,
     style_extractor: StyleExtractor,
     optimizer: Optimizer,
@@ -40,6 +42,8 @@ def train_model(
             epoch,
             lambda_1,
             lambda_2,
+            temperature,
+            base_temperature,
             seq2seq,
             style_extractor,
             optimizer,
@@ -76,6 +80,8 @@ def main(config_file: str):
     print(f"learning rate: {config.training.learning_rate}")
     print(f"lambda1: {config.training.lambda_1}")
     print(f"lambda2: {config.training.lambda_2}")
+    print(f"temperature: {config.training.temperature}")
+    print(f"base temperature: {config.training.base_temperature}")
 
     train_dl, val_dl, _ = get_dataloaders(
         config.dataset_dir,
@@ -110,6 +116,8 @@ def main(config_file: str):
         config.training.num_epochs,
         config.training.lambda_1,
         config.training.lambda_2,
+        config.training.temperature,
+        config.training.base_temperature,
         seq2seq,
         style_extractor,
         optimizer,

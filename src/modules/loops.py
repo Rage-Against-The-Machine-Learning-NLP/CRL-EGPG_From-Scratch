@@ -14,6 +14,8 @@ def train_loop(
     epoch: int,
     lambda_1: float,
     lambda_2: float,
+    temperature: float,
+    base_temperature: float,
     seq2seq: Seq2Seq,
     style_extractor: StyleExtractor,
     optimizer: Optimizer,
@@ -21,7 +23,9 @@ def train_loop(
     device: torch.device = torch.device(device="cpu"),
 ) -> list[float]:
 
-    criterion = UnsupervisedContrastiveLoss(device=device)
+    criterion = UnsupervisedContrastiveLoss(
+        temperature=temperature, base_temperature=base_temperature, device=device
+    )
     seq2seq.train()
     seq2seq.set_decoder_mode("train")
     style_extractor.train()
