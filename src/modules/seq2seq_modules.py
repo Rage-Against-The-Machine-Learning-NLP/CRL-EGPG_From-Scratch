@@ -55,10 +55,13 @@ class Seq2SeqEncoder(nn.Module):
             input=seq_arr, lengths=seq_len.cpu(), batch_first=True, enforce_sorted=False
         )
 
-        if self.model_type == Seq2SeqModelType.GRU:
-            output, hidden = self.model(padded_input)
-        else:
-            output, (hidden, _) = self.model(padded_input)
+        match self.model_type:
+            case Seq2SeqModelType.GRU:
+                output, hidden = self.model(padded_input)
+            case Seq2SeqModelType.LSTM:
+                output, (hidden, _) = self.model(padded_input)
+            case _:
+                raise ValueError(f"Unsupported model type: {model_type}")
 
         # todo: will this still work if num_layers > 1? original configs only have n_l==1
         output, _ = pad_packed_sequence(sequence=output, batch_first=True)
@@ -107,7 +110,8 @@ class Seq2SeqDecoder(nn.Module):
             "bidirectional": bidirectional,
             "device": device,
         }
-        match model_type:
+        self.model_type = model_type
+        match self.model_type:
             case Seq2SeqModelType.GRU:
                 self.model = nn.GRU(**args)
             case Seq2SeqModelType.LSTM:
@@ -147,12 +151,22 @@ class Seq2SeqDecoder(nn.Module):
                 context, _ = self.attention_layer(
                     hidden[-1], encoder_output, encoder_output, encoder_mask
                 )
-                output, hidden = self.model(
+
+                model_output = self.model(
                     torch.concat(
                         [context, decoder_input_emb[:, step]], dim=-1
                     ).unsqueeze(dim=1),
                     hidden,
                 )
+
+                match self.model_type:
+                    case Seq2SeqModelType.GRU:
+                        output, hidden = model_output
+                    case Seq2SeqModelType.LSTM:
+                        output, (hidden, _) = model_output
+                    case _:
+                        raise ValueError(f"Unsupported model type: {model_type}")
+
                 decoder_output_arr.append(output.squeeze(dim=1))
 
             decoder_output = self.projection_layer(
@@ -175,10 +189,18 @@ class Seq2SeqDecoder(nn.Module):
                 context, _ = self.attention_layer(
                     hidden[-1], encoder_output, encoder_output, encoder_mask
                 )
-                output, hidden = self.model(
+                model_output = self.model(
                     torch.concat([context, previous_vec], dim=-1).unsqueeze(dim=1),
                     hidden,
                 )
+
+                match self.model_type:
+                    case Seq2SeqModelType.GRU:
+                        output, hidden = model_output
+                    case Seq2SeqModelType.LSTM:
+                        output, (hidden, _) = model_output
+                    case _:
+                        raise ValueError(f"Unsupported model type: {model_type}")
 
                 decoder_output = self.projection_layer(output.squeeze(dim=1))
                 _, previous_id = decoder_output.max(dim=-1, keepdim=False)
