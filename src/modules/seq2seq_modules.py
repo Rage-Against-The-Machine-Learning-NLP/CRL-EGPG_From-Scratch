@@ -140,6 +140,7 @@ class Seq2SeqDecoder(nn.Module):
         style_feature = style_emb[:, -1, :]
         encoder_hidden = torch.concat([encoder_hidden, style_feature], dim=-1)
         hidden: torch.Tensor = self.W_enc2dec(encoder_hidden).unsqueeze(0)
+        cell_state: torch.Tensor = torch.zeros_like(hidden)
 
         return_val: torch.Tensor  # cheap hack for neatness
 
@@ -156,14 +157,18 @@ class Seq2SeqDecoder(nn.Module):
                     torch.concat(
                         [context, decoder_input_emb[:, step]], dim=-1
                     ).unsqueeze(dim=1),
-                    hidden,
+                    (
+                        hidden
+                        if self.model_type == Seq2SeqModelType.GRU
+                        else (hidden, cell_state)
+                    ),
                 )
 
                 match self.model_type:
                     case Seq2SeqModelType.GRU:
                         output, hidden = model_output
                     case Seq2SeqModelType.LSTM:
-                        output, (hidden, _) = model_output
+                        output, (hidden, cell_state) = model_output
                     case _:
                         raise ValueError(f"Unsupported model type: {model_type}")
 
@@ -191,14 +196,18 @@ class Seq2SeqDecoder(nn.Module):
                 )
                 model_output = self.model(
                     torch.concat([context, previous_vec], dim=-1).unsqueeze(dim=1),
-                    hidden,
+                    (
+                        hidden
+                        if self.model_type == Seq2SeqModelType.GRU
+                        else (hidden, cell_state)
+                    ),
                 )
 
                 match self.model_type:
                     case Seq2SeqModelType.GRU:
                         output, hidden = model_output
                     case Seq2SeqModelType.LSTM:
-                        output, (hidden, _) = model_output
+                        output, (hidden, cell_state) = model_output
                     case _:
                         raise ValueError(f"Unsupported model type: {model_type}")
 
