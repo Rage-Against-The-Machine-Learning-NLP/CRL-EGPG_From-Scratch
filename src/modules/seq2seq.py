@@ -73,6 +73,7 @@ class Seq2Seq(nn.Module):
         encoder_mask = (seq_arr == 0).byte()
         seq_arr = self.emb_layer(seq_arr)
         encoder_output, encoder_hidden = self.encoder_layer(seq_arr, seq_len)
+        print(encoder_output.shape, encoder_hidden.shape)
         output: torch.Tensor = self.decoder(
             encoder_hidden,
             encoder_output,

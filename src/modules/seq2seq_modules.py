@@ -35,7 +35,8 @@ class Seq2SeqEncoder(nn.Module):
             "device": device,
         }
 
-        match model_type:
+        self.model_type = model_type
+        match self.model_type:
             case Seq2SeqModelType.GRU:
                 self.model = nn.GRU(**args)
             case Seq2SeqModelType.LSTM:
@@ -54,8 +55,12 @@ class Seq2SeqEncoder(nn.Module):
             input=seq_arr, lengths=seq_len.cpu(), batch_first=True, enforce_sorted=False
         )
 
+        if self.model_type == Seq2SeqModelType.GRU:
+            output, hidden = self.model(padded_input)
+        else:
+            output, (hidden, _) = self.model(padded_input)
+
         # todo: will this still work if num_layers > 1? original configs only have n_l==1
-        output, hidden = self.model(padded_input)
         output, _ = pad_packed_sequence(sequence=output, batch_first=True)
         hidden = torch.cat(tensors=tuple(hidden), dim=-1)
 
