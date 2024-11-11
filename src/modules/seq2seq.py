@@ -20,6 +20,7 @@ class Seq2Seq(nn.Module):
             num_embeddings=config.vocabulary_dim,
             embedding_dim=config.embedding_dim,
             padding_idx=0,
+            device=device
         )
 
         glove_weight = utils.initialise_word_embedding(

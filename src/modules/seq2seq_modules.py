@@ -94,6 +94,7 @@ class Seq2SeqDecoder(nn.Module):
             encoder_final_out_dim + style_attention_input_dim,
             decoder_hidden_dim,
             bias=True,
+            device=device,
         )
         self.word_emb_layer = word_emb_layer
         self.attention_layer = ScaledDotProductAttention(
@@ -119,7 +120,7 @@ class Seq2SeqDecoder(nn.Module):
             case _:
                 raise ValueError(f"Unsupported model type: {model_type}")
 
-        self.projection_layer = nn.Linear(hidden_dim, vocabulary_dim)
+        self.projection_layer = nn.Linear(hidden_dim, vocabulary_dim, device=device)
         self.mode = "train"
 
     def set_mode(self, mode: str):
