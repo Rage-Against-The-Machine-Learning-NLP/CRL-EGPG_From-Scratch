@@ -3,7 +3,11 @@ import torch.nn as nn
 
 import src.utils as utils
 from src.parse_config import ModelConfig
-from .seq2seq_modules import Seq2SeqEncoder, Seq2SeqDecoder, Seq2SeqModelType, get_seq2seqmodeltype
+from .seq2seq_modules import (
+    Seq2SeqEncoder,
+    Seq2SeqDecoder,
+    get_seq2seqmodeltype,
+)
 
 
 class Seq2Seq(nn.Module):
@@ -15,12 +19,12 @@ class Seq2Seq(nn.Module):
         super().__init__()
         encoder_model_type = get_seq2seqmodeltype(config.encoder.model_type)
         decoder_model_type = get_seq2seqmodeltype(config.decoder.model_type)
-        
+
         self.emb_layer = nn.Embedding(
             num_embeddings=config.vocabulary_dim,
             embedding_dim=config.embedding_dim,
             padding_idx=0,
-            device=device
+            device=device,
         )
 
         glove_weight = utils.initialise_word_embedding(

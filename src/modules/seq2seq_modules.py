@@ -10,6 +10,7 @@ from .attention import ScaledDotProductAttention
 class Seq2SeqModelType(Enum):
     GRU = "gru"
     LSTM = "lstm"
+    RNN = "rnn"
 
 
 def get_seq2seqmodeltype(model_type: str) -> Seq2SeqModelType:
@@ -48,6 +49,8 @@ class Seq2SeqEncoder(nn.Module):
                 self.model = nn.GRU(**args)
             case Seq2SeqModelType.LSTM:
                 self.model = nn.LSTM(**args)
+            case Seq2SeqModelType.RNN:
+                self.model = nn.RNN(**args)
             case _:
                 raise ValueError(f"Unsupported model type: {model_type}")
 
@@ -63,7 +66,7 @@ class Seq2SeqEncoder(nn.Module):
         )
 
         match self.model_type:
-            case Seq2SeqModelType.GRU:
+            case Seq2SeqModelType.GRU | Seq2SeqModelType.RNN:
                 output, hidden = self.model(padded_input)
             case Seq2SeqModelType.LSTM:
                 output, (hidden, _) = self.model(padded_input)
@@ -124,6 +127,8 @@ class Seq2SeqDecoder(nn.Module):
                 self.model = nn.GRU(**args)
             case Seq2SeqModelType.LSTM:
                 self.model = nn.LSTM(**args)
+            case Seq2SeqModelType.RNN:
+                self.model = nn.RNN(**args)
             case _:
                 raise ValueError(f"Unsupported model type: {self.model_type}")
 
@@ -173,7 +178,7 @@ class Seq2SeqDecoder(nn.Module):
                 )
 
                 match self.model_type:
-                    case Seq2SeqModelType.GRU:
+                    case Seq2SeqModelType.GRU | Seq2SeqModelType.RNN:
                         output, hidden = model_output
                     case Seq2SeqModelType.LSTM:
                         output, (hidden, cell_state) = model_output
@@ -212,7 +217,7 @@ class Seq2SeqDecoder(nn.Module):
                 )
 
                 match self.model_type:
-                    case Seq2SeqModelType.GRU:
+                    case Seq2SeqModelType.GRU | Seq2SeqModelType.RNN:
                         output, hidden = model_output
                     case Seq2SeqModelType.LSTM:
                         output, (hidden, cell_state) = model_output
