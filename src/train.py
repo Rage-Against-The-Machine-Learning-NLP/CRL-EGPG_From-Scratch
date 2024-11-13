@@ -9,7 +9,7 @@ import src.utils as utils
 from src.parse_config import load_config_from_json, ModelConfig
 from src.dataset import get_dataloaders
 from src.modules.seq2seq import Seq2Seq
-from src.modules.seq2seq_modules import Seq2SeqModelType
+from src.modules.seq2seq_modules import Seq2SeqModelType, get_seq2seqmodeltype
 from src.modules.style import StyleExtractor
 from src.modules.loops import train_loop, eval_loop
 
@@ -89,18 +89,7 @@ def main(config_file: str):
         config.training.batch_size,
     )
 
-    encoder_model_type = (
-        Seq2SeqModelType.GRU
-        if config.encoder.model_type == "gru"
-        else Seq2SeqModelType.LSTM
-    )
-    decoder_model_type = (
-        Seq2SeqModelType.GRU
-        if config.decoder.model_type == "gru"
-        else Seq2SeqModelType.LSTM
-    )
-
-    seq2seq = Seq2Seq(config, encoder_model_type, decoder_model_type, device)
+    seq2seq = Seq2Seq(config, device)
     style_extractor = StyleExtractor(config.training.style_extractor_model_type)
     params: list[nn.parameter.Parameter] = list(seq2seq.parameters()) + list(
         style_extractor.parameters()

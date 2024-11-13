@@ -12,6 +12,13 @@ class Seq2SeqModelType(Enum):
     LSTM = "lstm"
 
 
+def get_seq2seqmodeltype(model_type: str) -> Seq2SeqModelType:
+    try:
+        return Seq2SeqModelType(model_type)
+    except ValueError:
+        raise ValueError(f"unsupported model type: {model_type}")
+
+
 class Seq2SeqEncoder(nn.Module):
     def __init__(
         self,

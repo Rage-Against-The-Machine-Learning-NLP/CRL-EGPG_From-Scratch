@@ -5,7 +5,8 @@ import torch
 from torch.utils.data import DataLoader
 
 from src.dataset import OurDataset
-from src.modules.seq2seq import Seq2Seq, Seq2SeqModelType
+from src.modules.seq2seq import Seq2Seq
+from src.modules.seq2seq_modules import get_seq2seqmodeltype
 from src.modules.style import StyleExtractor
 from src.parse_config import ModelConfig, load_config_from_json
 from src.utils import Specials, get_bert_tokenizer, pkl_load, resolve_relpath
@@ -19,18 +20,7 @@ def _get_test_loader(dataroot: str, max_len: int = 15) -> DataLoader:
 def _get_trained_models(
     config: ModelConfig, device: torch.device
 ) -> tuple[Seq2Seq, StyleExtractor]:
-    encoder_model_type = (
-        Seq2SeqModelType.GRU
-        if config.encoder.model_type == "gru"
-        else Seq2SeqModelType.LSTM
-    )
-    decoder_model_type = (
-        Seq2SeqModelType.GRU
-        if config.decoder.model_type == "gru"
-        else Seq2SeqModelType.LSTM
-    )
-
-    seq2seq = Seq2Seq(config=config, encoder_model_type=encoder_model_type, decoder_model_type=decoder_model_type, device=device)
+    seq2seq = Seq2Seq(config=config, device=device)
     seq2seq.load_state_dict(
         torch.load(
             os.path.join(config.model_save_dir, "seq2seq.pkl"),

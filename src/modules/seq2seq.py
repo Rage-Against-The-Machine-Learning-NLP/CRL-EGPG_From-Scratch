@@ -3,19 +3,19 @@ import torch.nn as nn
 
 import src.utils as utils
 from src.parse_config import ModelConfig
-from .seq2seq_modules import Seq2SeqEncoder, Seq2SeqDecoder, Seq2SeqModelType
+from .seq2seq_modules import Seq2SeqEncoder, Seq2SeqDecoder, Seq2SeqModelType, get_seq2seqmodeltype
 
 
 class Seq2Seq(nn.Module):
     def __init__(
         self,
         config: ModelConfig,
-        encoder_model_type: Seq2SeqModelType = Seq2SeqModelType.GRU,
-        decoder_model_type: Seq2SeqModelType = Seq2SeqModelType.GRU,
         device: torch.device = torch.device(device="cpu"),
     ):
-
         super().__init__()
+        encoder_model_type = get_seq2seqmodeltype(config.encoder.model_type)
+        decoder_model_type = get_seq2seqmodeltype(config.decoder.model_type)
+        
         self.emb_layer = nn.Embedding(
             num_embeddings=config.vocabulary_dim,
             embedding_dim=config.embedding_dim,
