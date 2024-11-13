@@ -6,7 +6,6 @@ from torch.utils.data import DataLoader
 
 from src.dataset import OurDataset
 from src.modules.seq2seq import Seq2Seq
-from src.modules.seq2seq_modules import get_seq2seqmodeltype
 from src.modules.style import StyleExtractor
 from src.parse_config import ModelConfig, load_config_from_json
 from src.utils import Specials, get_bert_tokenizer, pkl_load, resolve_relpath

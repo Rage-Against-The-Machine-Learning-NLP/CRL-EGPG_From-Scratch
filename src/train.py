@@ -1,4 +1,5 @@
 import os
+
 import torch
 import torch.nn as nn
 from torch.optim.adam import Adam
@@ -9,7 +10,6 @@ import src.utils as utils
 from src.parse_config import load_config_from_json, ModelConfig
 from src.dataset import get_dataloaders
 from src.modules.seq2seq import Seq2Seq
-from src.modules.seq2seq_modules import Seq2SeqModelType, get_seq2seqmodeltype
 from src.modules.style import StyleExtractor
 from src.modules.loops import train_loop, eval_loop
 
