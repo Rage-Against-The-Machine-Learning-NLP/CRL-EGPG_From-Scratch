@@ -61,7 +61,7 @@ class Seq2SeqEncoder(nn.Module):
             case Seq2SeqModelType.LSTM:
                 output, (hidden, _) = self.model(padded_input)
             case _:
-                raise ValueError(f"Unsupported model type: {model_type}")
+                raise ValueError(f"Unsupported model type: {self.model_type}")
 
         # todo: will this still work if num_layers > 1? original configs only have n_l==1
         output, _ = pad_packed_sequence(sequence=output, batch_first=True)
@@ -118,7 +118,7 @@ class Seq2SeqDecoder(nn.Module):
             case Seq2SeqModelType.LSTM:
                 self.model = nn.LSTM(**args)
             case _:
-                raise ValueError(f"Unsupported model type: {model_type}")
+                raise ValueError(f"Unsupported model type: {self.model_type}")
 
         self.projection_layer = nn.Linear(hidden_dim, vocabulary_dim, device=device)
         self.mode = "train"
@@ -171,7 +171,7 @@ class Seq2SeqDecoder(nn.Module):
                     case Seq2SeqModelType.LSTM:
                         output, (hidden, cell_state) = model_output
                     case _:
-                        raise ValueError(f"Unsupported model type: {model_type}")
+                        raise ValueError(f"Unsupported model type: {self.model_type}")
 
                 decoder_output_arr.append(output.squeeze(dim=1))
 
@@ -210,7 +210,7 @@ class Seq2SeqDecoder(nn.Module):
                     case Seq2SeqModelType.LSTM:
                         output, (hidden, cell_state) = model_output
                     case _:
-                        raise ValueError(f"Unsupported model type: {model_type}")
+                        raise ValueError(f"Unsupported model type: {self.model_type}")
 
                 decoder_output = self.projection_layer(output.squeeze(dim=1))
                 _, previous_id = decoder_output.max(dim=-1, keepdim=False)
