@@ -172,7 +172,7 @@ class Seq2SeqDecoder(nn.Module):
                     ).unsqueeze(dim=1),
                     (
                         hidden
-                        if self.model_type == Seq2SeqModelType.GRU
+                        if not self.model_type == Seq2SeqModelType.LSTM
                         else (hidden, cell_state)
                     ),
                 )
@@ -211,7 +211,7 @@ class Seq2SeqDecoder(nn.Module):
                     torch.concat([context, previous_vec], dim=-1).unsqueeze(dim=1),
                     (
                         hidden
-                        if self.model_type == Seq2SeqModelType.GRU
+                        if not self.model_type == Seq2SeqModelType.LSTM
                         else (hidden, cell_state)
                     ),
                 )
