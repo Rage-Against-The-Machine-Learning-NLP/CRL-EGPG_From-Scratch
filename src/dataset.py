@@ -7,7 +7,7 @@ import torch
 
 
 class OurDataset(Dataset):
-    def __init__(self, dataroot: str, max_len: int, type: str):
+    def __init__(self, dataroot: str, max_len: int, type: str, model_type: str = "bert"):
         def resolve_path(file: str, is_vocab_file: bool = False) -> str:
             """
             returns absolute path of a file associated with the dataset (train/test/valid)
@@ -28,15 +28,17 @@ class OurDataset(Dataset):
         super().__init__()
 
         assert type in ["train", "test", "valid"]
+        assert model_type in ["bert", "roberta", "albert"]
         self.type = type
         self.max_len: int = max_len
+        self.model_type = model_type
 
         files = (
             "src",
-            "src_bert_ids",
+            f"src_{model_type}_ids",
             "src_tags",
             "trg",
-            "trg_bert_ids",
+            f"trg_{model_type}_ids",
             "trg_tags",
             "similarity",
         )
@@ -123,11 +125,11 @@ class OurDataset(Dataset):
 
 
 def get_dataloaders(
-    dataroot: str, max_len: int, batch_size: int
+    dataroot: str, max_len: int, batch_size: int, model_type: str = "bert"
 ) -> tuple[DataLoader, DataLoader, DataLoader]:
-    train = OurDataset(dataroot, max_len, "train")
-    val = OurDataset(dataroot, max_len, "valid")
-    test = OurDataset(dataroot, max_len, "test")
+    train = OurDataset(dataroot, max_len, "train", model_type)
+    val = OurDataset(dataroot, max_len, "valid", model_type)
+    test = OurDataset(dataroot, max_len, "test", model_type)
 
     train_dl = DataLoader(train, batch_size=batch_size, shuffle=False)
     val_dl = DataLoader(val, batch_size=batch_size, shuffle=False)
@@ -138,7 +140,7 @@ def get_dataloaders(
 
 if __name__ == "__main__":
     # some basic code to test if the dataset is working fine
-    train_dl, val_dl, test_dl = get_dataloaders("../data/quora/processed", 15, 64)
+    train_dl, val_dl, test_dl = get_dataloaders("../data/quora/processed", 15, 64, "bert")
 
     # works fine, uncomment if needed
     # count = 0
