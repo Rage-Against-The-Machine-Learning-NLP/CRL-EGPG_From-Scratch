@@ -104,7 +104,7 @@ def evaluate(config: ModelConfig) -> None:
                 _, elements = items  # the first item is the index from enumerate
                 intersection_size = len(
                     set(trg_opt) & {item.item() for item in elements[0]}
-                )
+                ) # elements[0] because the first dim is batch size (1)
                 return intersection_size / len(trg_opt)
 
             max_coverage_ind, _ = max(
@@ -120,7 +120,7 @@ def evaluate(config: ModelConfig) -> None:
         os.remove(generated_file)
 
     with open(generated_file, "a") as f:
-        for bat in generated_list:
+        for bat in generated_list: # this may not be required because batch size is 1
             for sentence_id in bat:
                 words = [
                     idx2word.get(id.item(), Specials.UNK)
