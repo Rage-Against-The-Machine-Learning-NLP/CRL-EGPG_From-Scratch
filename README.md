@@ -44,7 +44,7 @@ Our implementation achieves results comparable to the original paper:
 ## Installation
 
 ```bash
-git clone https://github.com/your-username/CRL-EGPG.git
+git clone https://github.com/Rage-Against-The-Machine-Learning-NLP/CRL-EGPG_From-Scratch.git
 cd CRL-EGPG
 
 conda env create -f envs.yml
